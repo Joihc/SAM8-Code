@@ -38,8 +38,8 @@ uint8  count_60ms =0;
 uint8   count_1s=0;
 uint8  count_2s =0;
 
-volatile uint8 interupt_times =0;
-volatile uint8 show_times =0; //无锅检测中断次数
+//volatile uint8 interupt_times =0;
+//volatile uint8 show_times =0; //无锅检测中断次数
 
 uint8 while_time =0;
 uint8 reset_time = 0;
@@ -57,6 +57,8 @@ volatile uint8 fanTime =0;//FAN
 uint16 delay_temp = 0;//温度保护延迟
 
 uint16 tempreture =0;
+
+uint4 first_open =0;//第一次打开标识，
 
 #pragma inline=forced
 //--initiation
@@ -127,12 +129,14 @@ void defaultValue()
   potTime=0;
   fanTime =200;//关闭风扇
   
-  interupt_times=0;
-  show_times =0;
+ // interupt_times=0;
+ // show_times =0;
   
   reset_time = 0;
   
   tempreture =0;
+  
+  first_open =0;
   
   delay_temp = 1000;
 }
@@ -165,51 +169,60 @@ int main()
 #else
     //开启就需要检查的
     //三相电
-    if(rangeShow == 106 ||rangeShow == 107 || rangeShow == 108 )
+    if((rangeShow == 106 ||rangeShow == 107 || rangeShow == 108 )&& rangeNow ==0)
     {
       rangeShow = rangeNow;
     }
     threeVCheck();
     CLEAR_WD;
     //档位开关
-    if(rangeShow == 109 )
+    if(rangeShow == 109 && rangeNow ==0)
     {
       rangeShow = rangeNow;
     }
     switchCheck();
     //锅底温度开路检查
-    if(rangeShow == 110 )
+    if(rangeShow == 110 && rangeNow ==0)
     {
       rangeShow = rangeNow;
     }
-    underPotCheckNull();
+    if(delay_temp == 0)
+    {
+      underPotCheckNull();
+    }
     CLEAR_WD;
     //线盘温度开路检查
-    if(rangeShow == 103 )
+    if(rangeShow == 103 && rangeNow == 0)
     {
       rangeShow = rangeNow;
     }
-    coilCheckNull();
+    if(delay_temp == 0)
+    {
+      coilCheckNull();
+    }
     //igbt温度开路检查
-    if(rangeShow == 105)
+    if(rangeShow == 105 && rangeNow ==0)
     {
       rangeShow = rangeNow;
     }
-    igbtCheckNull();
+    if(delay_temp == 0)
+    {
+      igbtCheckNull();
+    }
     //------------------------------开启检查 0档刷新-------------------------------
     CLEAR_WD;
 
-    if((rangeShow<100 || rangeShow ==101) && delay_temp == 0)
+    if((rangeShow<100 || rangeShow ==101))
     {
           //线盘温度检查
           coilCheckTemp();
     }
-    if((rangeShow<100 || rangeShow ==101) && delay_temp == 0)
+    if((rangeShow<100 || rangeShow ==101))
     {
           //锅底温度
          underPotNullCheckTemp();
     }
-    if((rangeShow<100 ||rangeShow ==101) && delay_temp == 0)
+    if((rangeShow<100 ||rangeShow ==101))
     {
           //igbt温度
         igbtCheckTemp();
@@ -228,8 +241,10 @@ int main()
         //是否跳转到无锅
     if(rangeShow<100)
     {
-       
-       checkPotNull();
+        if(first_open == 1 && getPWMCanTakeNullPot())
+        {
+          checkPotNull();
+        }
        if(rangeShow ==101 && rangeNow !=0)//正常情况转到无锅状态下
        {
           potTime =0;//重置检锅时间
@@ -276,16 +291,24 @@ int main()
         {
           fanTime =1;
         }
+        first_open = 1;//开机0档复位标识
       }
       else
       {
         fanTime =0;
+      }
+      if(first_open == 1)
+      {
+        fixPWM(rangeNow);
         if(delay_temp>0)
         {
           delay_temp--;
         }
       }
-      fixPWM(rangeNow);
+      else
+      {
+        fixPWM(0);
+      }
     }
     else if(rangeShow == 101)//检锅频道
     {
@@ -341,13 +364,13 @@ int main()
     reset_time++;
     if(reset_time >=20)
     {
-       reset_time =0;    
-    }
-    
+       reset_time =0;        
+    } 
     while_time++;
-    if(while_time>=100)
+    if(while_time>=200)
     {
-      tempreture = getTemperatureByAnum(6);  //捡个便宜
+        while_time =0;
+        tempreture = getTemperatureByAnum(6);  //捡个便宜
     }
   }
 }
@@ -572,8 +595,8 @@ void TAInterupt()
     CLEAR_WD;
     count_60ms++;
     
-    show_times = interupt_times;
-    interupt_times = 0;
+    //show_times = interupt_times;
+    //interupt_times = 0;
           
     if(BUZZ_Test)
     {
@@ -653,9 +676,9 @@ void P34Interupt()
   //{
   //  fixPWM(0);//+
   //}
-  if(interupt_times <200)
-  {
-      interupt_times++;
-  }
-  CLEAR_WD;
+  //if(interupt_times <200)
+  //{
+  //    interupt_times++;
+  //}
+  //CLEAR_WD;
 }

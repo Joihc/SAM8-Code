@@ -39,7 +39,7 @@ void fixPWM(uint8 index)
     switch(index)
     {
       case 0:
-        pwm = PWM_POT;//30hz
+        pwm = PWM_MIN;//30hz
         closePWM();  
         ei;
       return;
@@ -99,6 +99,11 @@ void testPotPwm()
     TBDATAL =pwm;//pwm;//pwm/2 -1;
     openPWM();
     ei;
+}
+
+uint4 getPWMCanTakeNullPot()
+{
+  return pwm>63?1:0;//设置开始检锅的频率，如果未达到则不理
 }
 void testPWM(uint8 index)
 {

@@ -18,17 +18,17 @@
   7->2.7V->552.42
   8->3.0V->613.8
 */
-#define PWM1 (80)
-#define PWM2 (100)
-#define PWM3 (120)
+#define PWM1 (35)
+#define PWM2 (70)
+#define PWM3 (110)
 #define PWM4 (140)
 #define PWM5 (170)
 #define PWM6 (200)
 #define PWM7 (230)
 #define PWM8 (250)
 
-#define PWM_MIN (66) //30KHZ
-#define PWM_POT (100)//检查锅和回调频率 20KHZ
+#define PWM_MIN (60) //30KHZ
+#define PWM_POT (90)//检查锅和回调频率 20KHZ
 #define PWM_MAX (118) //16.66KHZ  236
 
 #define RETURN_PWM (100)//回调AD值
@@ -42,4 +42,6 @@ void testPotPwm();
 void testPWM(uint8 index);
 uint8 Clamp(uint8 num,uint8 mix,uint8 max);
 
+
+uint4 getPWMCanTakeNullPot();
 #endif /* _PWM_H_ */

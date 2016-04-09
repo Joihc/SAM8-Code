@@ -456,7 +456,7 @@ uint4 get_06ADC()
 uint4 get_13ADC()
 {
   uint16  PotTemp = getADCNum(13);
-  if(PotTemp <20)//0.5V
+  if(PotTemp <10)//0.5V
   {
     return 1;
   }
@@ -465,7 +465,7 @@ uint4 get_13ADC()
 uint4 get_13ADCQuickly()
 {
   uint16  PotTemp = getADCNumByNum(13);
-  if(PotTemp <20)//0.5V  60
+  if(PotTemp <10)//0.5V  60
   {
     return 1;
   }
