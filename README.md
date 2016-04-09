@@ -4,11 +4,12 @@
     .)  size与speed选择high
 # 代码介绍:
     .) 与位比较时 example & 0x80 == 0 用 (example & (1<<7))代替
-    .) 为防止被优化掉 特殊变量前需要添加 volatile修饰符
+    .) 为防止被优化掉 特殊变量 多线程中使用的变量需要加volatile修饰符
     .) do..while()作为延时系统  延时时间为 6*While+5 us  Cpu指令周期 1us    
     .) 某位单独设置0 p&=~(1<<7). 设置1 p|=(1<<7).取反p^=(1<<7)
     .) 208byte内存 ，测试阶段需要disable EEPROM  待确定程序大小后再设置
     .) flush内存需要在数组前加 code 或者 root.只加const 不能有效果
+    .) 不能在中断中使用AD转换函数。会导致某一时刻读数不准确
 #  74HC164 介绍:  
     0 on 1 off                                             A    
                          CP  C  E  D  G  F  A  B        F| _ | B

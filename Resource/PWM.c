@@ -32,13 +32,14 @@ void openPWM()
 
 void fixPWM(uint8 index)
 {
-    uint16 outCurrent = getADCNum(12);
-    uint16 p;
+    uint16 outCurrent = getADCNum(12);//输出互感器
+    uint16 inCurrent = getADCNum(13);//输入互感器
+    uint16 p=0;
     di;
     switch(index)
     {
       case 0:
-        pwm = PWM_MIN;//30hz
+        pwm = PWM_POT;//30hz
         closePWM();  
         ei;
       return;
@@ -67,13 +68,20 @@ void fixPWM(uint8 index)
             p = PWM8;
       break;
     }
-    if(outCurrent<p-5)
+    if((inCurrent < RETURN_PWM) && (pwm > PWM_POT))
     {
-      pwm++;
+      --pwm;
     }
-    else if(outCurrent>p+5)
+    else
     {
-      pwm--;
+      if(outCurrent<(p-2))
+      {
+        ++pwm;
+      }
+      else if(outCurrent>(p+2))
+      {
+        --pwm;
+      }
     }
     pwm =Clamp(pwm,PWM_MIN,PWM_MAX);
 
@@ -86,7 +94,7 @@ void testPotPwm()
 {
     di;
     //pwm++;
-    pwm =(PWM_MIN+PWM_MAX)/2;//Clamp(pwm,100,200);
+    pwm =Clamp(PWM_POT,PWM_MIN,PWM_MAX);//Clamp(pwm,100,200);
     TBDATAH = pwm;//pwm;//pwm/2 -1;
     TBDATAL =pwm;//pwm;//pwm/2 -1;
     openPWM();
@@ -148,7 +156,7 @@ uint4 getPWMRate()
   {
     return 2;
   }
-  else if(range>PWM1)
+  else if(range>PWM1-5)
   {
     return 1;
   }

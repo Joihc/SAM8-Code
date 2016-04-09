@@ -381,7 +381,7 @@ uint4 get_03ADC()
 uint4 get_05ADC()
 {
   uint16 Switch = getADCNum(5);//
-  if(Switch > NULL_NUM)
+  if(Switch > 800)
   {
     return 1;
   }
@@ -456,7 +456,7 @@ uint4 get_06ADC()
 uint4 get_13ADC()
 {
   uint16  PotTemp = getADCNum(13);
-  if(PotTemp <15)//0.5V
+  if(PotTemp <20)//0.5V
   {
     return 1;
   }
@@ -465,7 +465,7 @@ uint4 get_13ADC()
 uint4 get_13ADCQuickly()
 {
   uint16  PotTemp = getADCNumByNum(13);
-  if(PotTemp <15)//0.5V  60
+  if(PotTemp <20)//0.5V  60
   {
     return 1;
   }
@@ -488,58 +488,52 @@ module enters an idle state.
 uint16 getADCNumByNum(uint8 IO_P)
 {
   uint16 AD_Dat =0;
-  uint8 Tmp;
-  uint4 Inter =0;
+  uint16 Tmp=0;
+  di;
   switch(IO_P)
   {
   case 13:/* P1.3/ADC0/输入互感器 10K电阻串*/
       //P1CONL |= 0xc0;               //0x1100 0000
-      ADCON = 0x03;                 //0x0000 0 01 1  fxx/8 step3
+      ADCON = 0x05;                 //0x0000 0 01 1  fxx/8 step3
       break;
   case 12:/* P1.2/ADC1/5K滑动变阻器 串100K电阻，测试电压 100欧姆接地电压*/
       //P1CONL |= 0x30;               //0x0011 0000
-      ADCON = 0x13;                 //0x0001 0 01 1  fxx/8 step3
+      ADCON = 0x15;                 //0x0001 0 01 1  fxx/8 step3
     break;
   case 11:/* P1.1/ADC2/IBGT2温度传感器10K 5V*/
       //P1CONL |= 0x0c;               //0x0000 1100
-      ADCON = 0x23;                 //0x0010 0 01 1  fxx/8 step3
+      ADCON = 0x25;                 //0x0010 0 01 1  fxx/8 step3
     break;
     case 7:/* P0.7/ADC4/线盘温度 10K 5V*/
       //P0CONH |= 0x40;               //0x0100 0000
-      ADCON = 0x43;                 //0x0100 0 01 1  fxx/8 step3
+      ADCON = 0x45;                 //0x0100 0 01 1  fxx/8 step3
     break;
     case 6:/* P0.6/ADC5/锅底温度 10K 5V*/
       //P0CONH |= 0x10;               //0x0001 0000
-      ADCON = 0x53;                 //0x0101 0 01 1  fxx/8 step3
+      ADCON = 0x55;                 //0x0101 0 01 1  fxx/8 step3
     break;
     case 5:/* P0.5/ADC6/档位 10K 5V*/
       //P0CONH |= 0x04;               //0x0000 0100
-      ADCON = 0x63;                 //0x0110 0 01 1  fxx/8 step3
+      ADCON = 0x65;                 //0x0110 0 01 1  fxx/8 step3
     break;
     case 4:/* P0.4/ADC7/IGBT1温度10K 5V*/
       //P0CONH |= 0x01;               //0x0000 0001
-      ADCON = 0x73;                 //0x0111 0 01 1  fxx/8 step3
+      ADCON = 0x75;                 //0x0111 0 01 1  fxx/8 step3
     break;
     case 3:/* P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压*/
       //P0CONL |= 0xc0;               //0x1100 0000
-      ADCON = 0x83;                 //0x1000 0 01 1  fxx/8 step3
+      ADCON = 0x85;                 //0x1000 0 01 1  fxx/8 step3
     break;
   }
-
-  while((ADCON & (1<<3)) == 0)
-  {
-    Inter++;
-    if(Inter >=30)
-    {
-      break;
-    }
-  } //转换结束  step4
+  
+  while((ADCON & (1<<3)) == 0)  //转换结束  step4
   AD_Dat = ADDATAH;             //高8节
+  Tmp = ADDATAL;                //低8节 
+ 
   AD_Dat <<=2;
-  Tmp =ADDATAL;
-  Tmp &= 0x03;
   AD_Dat |=Tmp;
-  ADCON = 0xF2;
+  ADCON = 0xF0;
+  ei;
   return AD_Dat;
 }
 

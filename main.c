@@ -38,8 +38,11 @@ uint8  count_60ms =0;
 uint8   count_1s=0;
 uint8  count_2s =0;
 
-volatile uint16 interupt_times =0;
-volatile uint16 show_times =0;
+volatile uint8 interupt_times =0;
+volatile uint8 show_times =0; //无锅检测中断次数
+
+uint8 while_time =0;
+uint8 reset_time = 0;
 //当前档位
 uint8 rangeNow =0;
 //无锅检查时间段
@@ -51,7 +54,9 @@ uint8 rangeNext =0;
 uint8 buzzTime=0;//BUZZ
 volatile uint8 fanTime =0;//FAN
 
-volatile uint16 tempreture =0;
+uint16 delay_temp = 0;//温度保护延迟
+
+uint16 tempreture =0;
 
 #pragma inline=forced
 //--initiation
@@ -65,12 +70,12 @@ void sysInit()
 
   OSCCON =0x04;
 
-  ADCON =0xF2;
+  ADCON =0xF4;
   TADATA = 234;
   TACON = 0x0B;
   //TACON = 0x00;
 
-  TBCON =0xB7;//0x10   11 1111  /4
+  TBCON =0x77;//0x01   11 0111  /2
   TINTPND =0x00;
 
   //WTCON  0100 1010
@@ -97,10 +102,10 @@ void ioInit()
 #endif
 
   /*  P3 I/0口*/
-  P3CONH = 0x05;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/上升) 01(P3.3/下降沿)
+  P3CONH = 0x04;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/上升) 01(P3.3/下降沿)
   P3CONL = 0x00;//000(P3.2) 000(P3.1) 00(P3.0)
 
-  P3INT =0x08;//00(P3.6/SCLK) 00(P3.5/SDAT) 10(P3.4/上升) 00(P3.3/下降沿)
+  P3INT =0x00;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/上升)10 00(P3.3/下降沿)10
   P3PND = 0x00;//0000 1(P3.6/SCLK) 0(P3.5/SDAT) 0(P3.4/下降沿) 0(P3.3/下降沿) -中断挂起 置0重置
    /*  P4 I/0口 全部挂起*/
 }
@@ -125,7 +130,11 @@ void defaultValue()
   interupt_times=0;
   show_times =0;
   
+  reset_time = 0;
+  
   tempreture =0;
+  
+  delay_temp = 1000;
 }
 int main()
 {
@@ -190,32 +199,37 @@ int main()
     //------------------------------开启检查 0档刷新-------------------------------
     CLEAR_WD;
 
-    if(rangeShow<100 || rangeShow ==101)
+    if((rangeShow<100 || rangeShow ==101) && delay_temp == 0)
     {
           //线盘温度检查
           coilCheckTemp();
     }
-    if(rangeShow<100 || rangeShow ==101)
+    if((rangeShow<100 || rangeShow ==101) && delay_temp == 0)
     {
           //锅底温度
          underPotNullCheckTemp();
     }
-    if(rangeShow<100 ||rangeShow ==101)
+    if((rangeShow<100 ||rangeShow ==101) && delay_temp == 0)
     {
           //igbt温度
         igbtCheckTemp();
     }
     CLEAR_WD;
+    
     if(rangeShow<100 || rangeShow ==101)
     {
         //igbt驱动 重点检查，如果问题。机器不能启动,在检锅下也检查
         igbtDriver();
+        if(rangeShow == 112 && rangeNow !=0)
+        {
+          reset_time =0;
+        }
     }
         //是否跳转到无锅
     if(rangeShow<100)
     {
        
-      checkPotNull();
+       checkPotNull();
        if(rangeShow ==101 && rangeNow !=0)//正常情况转到无锅状态下
        {
           potTime =0;//重置检锅时间
@@ -226,11 +240,18 @@ int main()
 
     CLEAR_WD;
     //----------------------------基础检查无错------------------
-    if(rangeShow == 102 || rangeShow == 111 ||rangeShow == 104 || rangeShow == 112)//超温状态或者IGBT驱动在0档时刷新
+    if(rangeShow == 102 || rangeShow == 111 ||rangeShow == 104)//超温状态或
     {
       if(rangeNow == 0)//0档直接重置
       {
         rangeShow = rangeNow;//结束温度检查
+      }
+    }
+    if(rangeShow == 112)//检查IGBT状态下
+    {
+      if(rangeNow == 0)
+      {
+        rangeShow = rangeNow;
       }
     }
     if(rangeShow ==101)//无锅状态下
@@ -259,6 +280,10 @@ int main()
       else
       {
         fanTime =0;
+        if(delay_temp>0)
+        {
+          delay_temp--;
+        }
       }
       fixPWM(rangeNow);
     }
@@ -268,17 +293,39 @@ int main()
       {
         fanTime =1;
       }
-      if(potTime <6)
+      if( potTime<6)
       {
         testPotPwm();
+        
       }
       else
       {
         fixPWM(0);
       }
     }
-    else
+    else if(rangeShow == 112)//IGBT状态频道
     {
+      if(fanTime == 0)
+      {
+        fanTime =1;
+      }
+      if(reset_time == 1)
+      {
+        testPotPwm();
+        delay(2);
+        rangeShow = rangeNow;
+        igbtDriver();
+        if(rangeShow == 112)
+        {
+          fixPWM(0);
+        }
+      }
+      else
+      {
+        fixPWM(0);
+      }
+    }
+    else{
       if(fanTime == 0)
       {
         fanTime =1;
@@ -290,6 +337,18 @@ int main()
     CLEAR_WD;
     ViewSet();
     CLEAR_WD;
+    
+    reset_time++;
+    if(reset_time >=20)
+    {
+       reset_time =0;    
+    }
+    
+    while_time++;
+    if(while_time>=100)
+    {
+      tempreture = getTemperatureByAnum(6);  //捡个便宜
+    }
   }
 }
 //三相电
@@ -391,17 +450,18 @@ void igbtCheckNull()
 #pragma inline=forced
 void igbtDriver()
 {
-    if(!Test_Bit(P3,3)|| (show_times >=70))//|| !Test_Bit(P3,4))//IGBT驱动问题  输出互感器
+    if(!Test_Bit(P3,3))//|| !Test_Bit(P3,4))//IGBT驱动问题  输出互感器|| (show_times >=300
     {
        rangeShow = 112;
     }
 }
+
 //检测是否无锅
 #pragma inline=forced
 void checkPotNull()
 {
     state_Read1 = get_13ADC();
-    if(state_Read1 == 1)
+    if(state_Read1 == 1)// && show_times !=0)
     {
         rangeShow = 101;
     }
@@ -509,10 +569,12 @@ __interrupt void int_9488()
 //A定时器
 void TAInterupt()
 {
-  show_times = interupt_times;
-  interupt_times = 0;
-  CLEAR_WD;
+    CLEAR_WD;
     count_60ms++;
+    
+    show_times = interupt_times;
+    interupt_times = 0;
+          
     if(BUZZ_Test)
     {
       buzzTime++;
@@ -531,9 +593,7 @@ void TAInterupt()
       count_60ms=0;
       count_2s++;
       count_1s++;
-
-
-    
+      
       if(potTime < 40)
       {
         potTime++;
@@ -542,6 +602,7 @@ void TAInterupt()
           potTime =0;
         }
       }
+      
       if(count_2s == 34)//2s
       {
         count_2s =0;
@@ -560,7 +621,6 @@ void TAInterupt()
           FAN_OFF;
         }
         CLEAR_WD;
-        tempreture = getTemperatureByAnum(6);
       }
       if(count_1s == 17)
       {
@@ -573,6 +633,7 @@ void TAInterupt()
         #elif defined Screen_TM1629
               interuptUpdate_TM1629();
         #endif
+              
       }
     }
     CLEAR_WD;
@@ -580,12 +641,10 @@ void TAInterupt()
 #pragma inline=forced
 void P33Interupt()
 {
-  //输出电流过大
-  //if(rangeNow != 0)
+  //if(reset_time == 0)
   //{
-  //  fixPWM(0);
+  //  reset_time =1;//开始驱动检测标志
   //}
-  //noWayToDrive();
 }
 #pragma inline=forced
 void P34Interupt()
@@ -594,6 +653,9 @@ void P34Interupt()
   //{
   //  fixPWM(0);//+
   //}
-  interupt_times++;
+  if(interupt_times <200)
+  {
+      interupt_times++;
+  }
   CLEAR_WD;
 }
