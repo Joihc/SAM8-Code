@@ -16,8 +16,8 @@
 #elif defined  Screen_TM1629
       #include "TM1629.h"
 #endif
-//003EH -> 1 01011 11   003FH ->1111 1 110
-__root const volatile uint8 Smart_Code[]@0x003C={0xFF,0x05,0xAF,0xFE};
+//003EH -> 1 01011 11   003FH ->1111 1 110   D3
+__root const volatile uint8 Smart_Code[]@0x003C={0xFF,0x05,0xD3,0xFE};
 __code const uint8 POWER_RATE[]=
 {
   #ifdef P_15KW
@@ -60,6 +60,10 @@ uint16 tempreture =0;
 
 uint4 first_open =0;//第一次打开标识，
 
+uint4 v_lastState =0;
+
+uint8 BUZZ_ALL_TIME =0;
+
 #pragma inline=forced
 //--initiation
 void sysInit()
@@ -82,6 +86,8 @@ void sysInit()
 
   //WTCON  0100 1010
   //WTCON=0x4A;
+  
+  VLDCON = 0x17 ;//3.9V
 }
 
 #pragma inline=forced
@@ -139,6 +145,11 @@ void defaultValue()
   first_open =0;
   
   delay_temp = 1000;
+  
+  BUZZ_ALL_TIME =100;
+  
+  buzzTime= 0;
+  
 }
 int main()
 {
@@ -158,7 +169,8 @@ int main()
   ei;
   BUZZ_ON;
   delay(100);
-
+  BUZZ_ALL_TIME = 4;
+  
   while(1)
   {
 #ifdef DEBUG
@@ -171,7 +183,7 @@ int main()
     //三相电
     if((rangeShow == 106 ||rangeShow == 107 || rangeShow == 108 )&& rangeNow ==0)
     {
-      rangeShow = rangeNow;
+        rangeShow = rangeNow;
     }
     threeVCheck();
     CLEAR_WD;
@@ -367,7 +379,7 @@ int main()
        reset_time =0;        
     } 
     while_time++;
-    if(while_time>=200)
+    if(while_time>=100)
     {
         while_time =0;
         tempreture = getTemperatureByAnum(6);  //捡个便宜
@@ -378,8 +390,8 @@ int main()
 #pragma inline=forced
 void threeVCheck()
 {
-  state_Read1 = get_03ADC();
-    if(state_Read1 == 1)
+  state_Read1 = get_03ADC(v_lastState);
+    if((state_Read1 == 1)|| (VLDCON & 0x40))
     {
       //缺相
       rangeShow =108;
@@ -394,6 +406,7 @@ void threeVCheck()
       //高压
       rangeShow =107;
     }
+    v_lastState = state_Read1;
 }
 //档位开关是否开路
 #pragma inline=forced
@@ -509,7 +522,14 @@ void ViewSet()
 {
     if(rangeShow < 100)
     {
-      setNum_74HC164(rangNow);
+      if(first_open)
+      {
+        setNum_74HC164(rangeNow);
+      }
+      else
+      {
+        setNum_74HC164(0);
+      }
     }
     else
     {
@@ -522,7 +542,14 @@ void ViewSet()
 {
      if(rangeShow<100)
      {
-        set_TM1629_Up(POWER_RATE[rangeNow]);
+        if(first_open)
+        {
+          set_TM1629_Up(POWER_RATE[rangeNow]);
+        }
+        else
+        {
+          set_TM1629_Up(POWER_RATE[0]);
+        }
      }
      else
      {
@@ -601,7 +628,7 @@ void TAInterupt()
     if(BUZZ_Test)
     {
       buzzTime++;
-      if(buzzTime >=4)
+      if(buzzTime >=BUZZ_ALL_TIME)
       {
         buzzTime = 0;
         BUZZ_OFF;
