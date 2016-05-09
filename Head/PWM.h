@@ -28,9 +28,10 @@
 #define PWM8 (250)
 
 #define PWM_MIN (60) //30KHZ
-#define PWM_POT (90)//检查锅和回调频率 20KHZ
+#define PWM_POT (65)
 #define PWM_MAX (118) //16.66KHZ  236
 
+#define PWM_RETURN (90)//检查锅和回调频率 20KHZ
 #define RETURN_PWM (100)//回调AD值
 //0.5 -1.2
 void setTBPWM();
@@ -42,6 +43,6 @@ void testPotPwm();
 void testPWM(uint8 index);
 uint8 Clamp(uint8 num,uint8 mix,uint8 max);
 
-
+//void testIGBT();
 uint4 getPWMCanTakeNullPot();
 #endif /* _PWM_H_ */

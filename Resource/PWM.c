@@ -20,8 +20,8 @@ void setTBPWM()
 #pragma inline=forced
 void closePWM()
 {
-  P1CONL &= 0xFC;
   AJ_OFF;
+  P1CONL = 0xFC;
 }
 #pragma inline=forced
 void openPWM()
@@ -68,7 +68,7 @@ void fixPWM(uint8 index)
             p = PWM8;
       break;
     }
-    if((inCurrent < RETURN_PWM) && (pwm > PWM_POT))
+    if((inCurrent < RETURN_PWM) && (pwm > PWM_RETURN))
     {
       --pwm;
     }

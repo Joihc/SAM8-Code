@@ -255,7 +255,9 @@ int main()
     {
         if(first_open == 1 && getPWMCanTakeNullPot())
         {
+#ifndef NO_POT
           checkPotNull();
+#endif
         }
        if(rangeShow ==101 && rangeNow !=0)//正常情况转到无锅状态下
        {
@@ -344,10 +346,10 @@ int main()
       {
         fanTime =1;
       }
-      if(reset_time == 1)
+      if(reset_time == 10)
       {
         testPotPwm();
-        delay(2);
+        delay(4);
         rangeShow = rangeNow;
         igbtDriver();
         if(rangeShow == 112)

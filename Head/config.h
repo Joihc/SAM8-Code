@@ -32,6 +32,7 @@ typedef unsigned long unit32;//32位无符号
 #define P_30KW //P_15KW P_20KW P_25KW P_30KW
 
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
+//#define NO_POT //是否开启不检锅
 
 #define CLEAR_WD (WDTCON = 0x0A)
 
