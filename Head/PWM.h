@@ -32,7 +32,7 @@
 #define PWM_MAX (118) //16.66KHZ  236
 
 #define PWM_RETURN (90)//检查锅和回调频率 20KHZ
-#define RETURN_PWM (100)//回调AD值
+#define RETURN_PWM (70)//回调AD值
 //0.5 -1.2
 void setTBPWM();
 void openPWM();

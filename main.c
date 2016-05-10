@@ -42,7 +42,7 @@ uint8  count_2s =0;
 //volatile uint8 show_times =0; //无锅检测中断次数
 
 uint8 while_time =0;
-uint8 reset_time = 0;
+//uint8 reset_time = 0;
 //当前档位
 uint8 rangeNow =0;
 //无锅检查时间段
@@ -63,6 +63,8 @@ uint4 first_open =0;//第一次打开标识，
 uint4 v_lastState =0;
 
 uint8 BUZZ_ALL_TIME =0;
+
+uint8 no_PotTimes =0;//无锅次数
 
 #pragma inline=forced
 //--initiation
@@ -138,7 +140,7 @@ void defaultValue()
  // interupt_times=0;
  // show_times =0;
   
-  reset_time = 0;
+  //reset_time = 0;
   
   tempreture =0;
   
@@ -149,6 +151,8 @@ void defaultValue()
   BUZZ_ALL_TIME =100;
   
   buzzTime= 0;
+  
+  no_PotTimes =0;
   
 }
 int main()
@@ -245,10 +249,10 @@ int main()
     {
         //igbt驱动 重点检查，如果问题。机器不能启动,在检锅下也检查
         igbtDriver();
-        if(rangeShow == 112 && rangeNow !=0)
-        {
-          reset_time =0;
-        }
+        //if(rangeShow == 112 && rangeNow !=0)
+        //{
+        // reset_time =0;
+        //}
     }
         //是否跳转到无锅
     if(rangeShow<100)
@@ -261,7 +265,20 @@ int main()
         }
        if(rangeShow ==101 && rangeNow !=0)//正常情况转到无锅状态下
        {
-          potTime =0;//重置检锅时间
+          if(no_PotTimes >= 6)
+          {
+            no_PotTimes =0;
+            potTime =0;//重置检锅时间
+          }
+          else
+          {
+            no_PotTimes++;
+            rangeShow = rangeNow;
+          }
+       }
+       else
+       {
+          no_PotTimes =0;
        }
     }
 
@@ -281,17 +298,14 @@ int main()
       if(rangeNow == 0)
       {
         rangeShow = rangeNow;
+        //AJ_ON;//复位
       }
     }
     if(rangeShow ==101)//无锅状态下
     {
-      if(rangeNow == 0)//0档直接重置
+      rangeShow = rangeNow;//是否结束检锅
+      if(rangeNow != 0)
       {
-        rangeShow = rangeNow;//结束检锅
-      }
-      else if(potTime >0 && potTime<6)
-      {
-        rangeShow = rangeNow;//是否结束检锅
         checkPotNull();
       }
     }
@@ -330,10 +344,9 @@ int main()
       {
         fanTime =1;
       }
-      if( potTime<6)
+      if(potTime<3)
       {
-        testPotPwm();
-        
+        testPotPwm();     
       }
       else
       {
@@ -346,21 +359,25 @@ int main()
       {
         fanTime =1;
       }
-      if(reset_time == 10)
-      {
-        testPotPwm();
-        delay(4);
-        rangeShow = rangeNow;
-        igbtDriver();
-        if(rangeShow == 112)
-        {
+      //if(reset_time == 40)
+      //  {
+          //P3INT =0x02;//开启中断
+          //AJ_ON;//复位      
+          //
+      //    fixPWM(rangeNow);
+      //    AJ_ON;//复位
+          //delay(4);
+          //rangeShow = rangeNow;
+          //igbtDriver();
+          //if(rangeShow == 112)
+          //{
+          //  fixPWM(0);
+          //}
+      //  }
+      //  else
+      //  {
           fixPWM(0);
-        }
-      }
-      else
-      {
-        fixPWM(0);
-      }
+      //  }
     }
     else{
       if(fanTime == 0)
@@ -375,16 +392,22 @@ int main()
     ViewSet();
     CLEAR_WD;
     
-    reset_time++;
-    if(reset_time >=20)
-    {
-       reset_time =0;        
-    } 
+    //reset_time++;
+    // if(reset_time >=40)
+    //{
+    //   reset_time =0;        
+    //} 
     while_time++;
     if(while_time>=100)
     {
         while_time =0;
         tempreture = getTemperatureByAnum(6);  //捡个便宜
+    }
+    
+    potTime++;
+    if(potTime >=30)
+    {
+       potTime =0;
     }
   }
 }
@@ -561,10 +584,10 @@ void ViewSet()
      set_TM1629_Leftstring(getPWMRate());
       if(rangeShow<100 && rangeNow>0)//温度模式
       {
-        // temperature =getTemperatureByAnum(6);//锅底温度
+        // tempreture =getTemperatureByAnum(6);//锅底温度
         //getADCNum(13) 输入互感器电流 AD
         //getADCNum(12) 输出互感器电流大小
-        set_TM1629_Down(tempreture,1);//temperature,1);
+        set_TM1629_Down(tempreture,1);//tempreture,1);
       }
       else//时间模式
       {
@@ -645,16 +668,7 @@ void TAInterupt()
       count_60ms=0;
       count_2s++;
       count_1s++;
-      
-      if(potTime < 40)
-      {
-        potTime++;
-        if(potTime == 40)
-        {
-          potTime =0;
-        }
-      }
-      
+          
       if(count_2s == 34)//2s
       {
         count_2s =0;
@@ -697,6 +711,8 @@ void P33Interupt()
   //{
   //  reset_time =1;//开始驱动检测标志
   //}
+  AJ_OFF;
+  P3INT =0x00;//关闭此中断
 }
 #pragma inline=forced
 void P34Interupt()

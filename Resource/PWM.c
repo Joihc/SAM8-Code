@@ -26,8 +26,11 @@ void closePWM()
 #pragma inline=forced
 void openPWM()
 {
-  P1CONL = 0xFD;
-  AJ_ON;
+  if(Test_Bit(P3,3))
+  {
+    P1CONL = 0xFD;
+    AJ_ON;
+  }
 }
 
 void fixPWM(uint8 index)
