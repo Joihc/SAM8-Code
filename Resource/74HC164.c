@@ -28,6 +28,7 @@ __code const uint8 LED7Code[]={
 enum LED_STATE redLedStatus;
 enum LED_STATE blueLedStatus;
 enum LED_STATE numLedStatus;
+enum LED_STATE BuzzState;
 
 uint8 screenNum;
 
@@ -63,78 +64,91 @@ void setNum_74HC164(uint8 num)
   
   switch (num) {
     case 101:
+    BuzzState = OFF;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[1];
     break;
     case 102:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[2];
     break;
     case 103:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[3];
     break;
     case 104:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[4];
     break;
     case 105:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[5];
     break;
     case 106:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[6];
     break;
     case 107:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[7];
     break;
     case 108:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[8];
     break;
     case 109:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[9];
     break;
     case 110:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[10];
     break;
     case 111:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[11];
     break;
     case 112:
+    BuzzState = FLUSH;
     numLedStatus = FLUSH;
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[13];
     break;
     default:
+    BuzzState = OFF;
     numLedStatus = ON;
     redLedStatus = num%100?ON:FLUSH;
     blueLedStatus = num%100?ON:OFF;
@@ -148,6 +162,7 @@ void init_74HC164()
   redLedStatus  = ON;
   blueLedStatus = ON;
   numLedStatus = ON;
+  BuzzState = OFF;
 
   last74State =0;
   screenNum =0;
@@ -215,7 +230,10 @@ void interuptUpdate_74HC164()
         if(last74State ==0)
         {
           last74State =1;
-          BUZZ_ON;
+          if(BuzzState == FLUSH)
+          {
+            BUZZ_ON;
+          }
         }
       }
       else
