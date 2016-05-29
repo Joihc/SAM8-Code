@@ -398,7 +398,7 @@ int main()
     //   reset_time =0;        
     //} 
     while_time++;
-    if(while_time>=100)
+    if(while_time>=20)
     {
         while_time =0;
         tempreture = getTemperatureByAnum(6);  //¼ñ¸ö±ãÒË
