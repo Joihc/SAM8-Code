@@ -468,7 +468,7 @@ uint4 get_07ADC()
   }
   return 0;
 }
-/* P0.6/ADC5/¹øµ×ÎÂ¶È 10K 5V   240c*/
+/* P0.6/ADC5/¹øµ×ÎÂ¶È 10K 5V   0x13*/
 uint4 get_06ADC()
 {
   uint16  PotTemp = getADCNum(6);

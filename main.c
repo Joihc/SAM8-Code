@@ -511,7 +511,7 @@ void igbtCheckNull()
 #pragma inline=forced
 void igbtDriver()
 {
-    if(!Test_Bit(P3,3))//|| !Test_Bit(P3,4))//IGBT驱动问题  输出互感器|| (show_times >=300
+    if(!Test_Bit(P3,3)|| !Test_Bit(P3,4))//IGBT驱动问题  输出互感器装反
     {
        rangeShow = 112;
     }
