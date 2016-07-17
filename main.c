@@ -23,11 +23,11 @@ __code const uint8 POWER_RATE[]=
   #ifdef P_15KW
     0, 2 , 4 , 6, 8 , 10 , 12 , 13 , 15
   #elif defined P_20KW
-    0, 2 , 4 , 7 , 9 , 12, 15, 18, 20
+    0, 3 , 5 , 7 , 9 , 12, 15, 18, 20
   #elif defined P_25KW
-    0, 3 , 6 , 9 , 12, 16, 21, 24, 28
+    0, 4 , 6 , 8 , 12, 16,18, 22,25
   #elif defined P_30KW
-    0, 3 , 6 , 9 , 12, 17, 19, 25, 30
+    0, 5 , 8 , 9 , 14, 18, 21, 25, 30
   #endif
 };
 
@@ -47,8 +47,13 @@ uint8 while_time =0;
 uint8 rangeNow =0;
 //无锅检查时间段
 volatile uint8 potTime=0;
+volatile uint8 igbt_reset =0;
 //当前显示
 volatile uint8 rangeShow =0;
+
+volatile uint4 null_pot =0;//无锅状态下的检锅
+volatile uint4 igbt_error =0;//IGBT故障下的检测
+
 uint8 rangeNext =0;
 
 uint8 buzzTime=0;//BUZZ
@@ -133,8 +138,12 @@ void defaultValue()
   rangeNow =0;
   rangeNext =0;
   rangeShow =0;
+  
+  null_pot =0;
+  igbt_error = 0;
 
-  potTime=0;
+  igbt_reset =40;
+  potTime=30;
   fanTime =200;//关闭风扇
   
  // interupt_times=0;
@@ -249,10 +258,11 @@ int main()
     {
         //igbt驱动 重点检查，如果问题。机器不能启动,在检锅下也检查
         igbtDriver();
-        //if(rangeShow == 112 && rangeNow !=0)
-        //{
-        // reset_time =0;
-        //}
+        if(rangeShow == 112 && rangeNow !=0)
+        {
+          igbt_reset =0;
+          igbt_error =0;
+        }
     }
         //是否跳转到无锅
     if(rangeShow<100)
@@ -269,6 +279,7 @@ int main()
           {
             no_PotTimes =0;
             potTime =0;//重置检锅时间
+            null_pot =0;
           }
           else
           {
@@ -300,14 +311,62 @@ int main()
         rangeShow = rangeNow;
         //AJ_ON;//复位
       }
+      else
+      {
+        if(igbt_error == 1 && igbt_reset == 40)
+        {
+          if(!Test_Bit(P3,3)|| !Test_Bit(P3,4))
+          {
+            igbt_error =0;
+            igbt_reset =0;
+          }
+          else
+          {
+            rangeShow = rangeNow;
+          }
+        }        
+      }
     }
     if(rangeShow ==101)//无锅状态下
-    {
-      rangeShow = rangeNow;//是否结束检锅
+    { 
       if(rangeNow != 0)
       {
-        checkPotNull();
+        if(null_pot == 1)
+        {
+          if(get_13ADC() == 1)
+          {
+            if(no_PotTimes >=6)
+            {
+              no_PotTimes =0;
+              null_pot =0;
+              potTime =0;
+            }
+            else
+            {
+              no_PotTimes++;
+            }
+          }
+          else
+          {
+            no_PotTimes =0;
+            rangeShow = rangeNow;
+          }
+        }
+        else
+        {
+          no_PotTimes =0;
+        }
       }
+      else
+      {
+        rangeShow = rangeNow;
+        no_PotTimes =0;
+      }
+      //rangeShow = rangeNow;//是否结束检锅
+      //if(rangeNow != 0)
+      //{
+      //  checkPotNull();
+      //}
     }
     //----------------------------有无锅检查--------------------
     CLEAR_WD;
@@ -344,13 +403,22 @@ int main()
       {
         fanTime =1;
       }
-      if(potTime<3)
+      if(potTime==28)
       {
-        testPotPwm();     
+        null_pot =1;//开启检锅下的pwm
+        fixPWM(rangeNow);
+        //testPotPwm();     
       }
       else
       {
-        fixPWM(0);
+        if(null_pot ==0)
+        {
+          fixPWM(0);
+        }
+        else
+        {
+          fixPWM(rangeNow);
+        }
       }
     }
     else if(rangeShow == 112)//IGBT状态频道
@@ -359,25 +427,22 @@ int main()
       {
         fanTime =1;
       }
-      //if(reset_time == 40)
-      //  {
-          //P3INT =0x02;//开启中断
-          //AJ_ON;//复位      
-          //
-      //    fixPWM(rangeNow);
-      //    AJ_ON;//复位
-          //delay(4);
-          //rangeShow = rangeNow;
-          //igbtDriver();
-          //if(rangeShow == 112)
-          //{
-          //  fixPWM(0);
-          //}
-      //  }
-      //  else
-      //  {
+      if(igbt_reset == 38)
+      {
+         fixPWM(rangeNow);
+         igbt_error =1;
+      }
+      else
+      {
+        if(igbt_error ==0)
+        {
           fixPWM(0);
-      //  }
+        }
+        else
+        {
+           fixPWM(rangeNow);
+        }
+      }
     }
     else{
       if(fanTime == 0)
@@ -392,11 +457,10 @@ int main()
     ViewSet();
     CLEAR_WD;
     
-    //reset_time++;
-    // if(reset_time >=40)
-    //{
-    //   reset_time =0;        
-    //} 
+    if(igbt_reset <40)
+    {
+      igbt_reset++;
+    }
     while_time++;
     if(while_time>=20)
     {
@@ -404,10 +468,9 @@ int main()
         tempreture = getTemperatureByAnum(6);  //捡个便宜
     }
     
-    potTime++;
-    if(potTime >=30)
+    if(potTime <30)
     {
-       potTime =0;
+       potTime ++;
     }
   }
 }

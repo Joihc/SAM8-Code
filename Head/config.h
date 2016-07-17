@@ -27,7 +27,7 @@ typedef unsigned long unit32;//32位无符号
 //******************************************************************
 
 
-#define Screen_TM1629 // Screen_74HC164 或者 Screen_TM1629
+#define Screen_74HC164 // Screen_74HC164 或者 Screen_TM1629
 
 #define P_20KW //P_15KW P_20KW P_25KW P_30KW
 
