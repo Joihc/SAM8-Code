@@ -70,6 +70,7 @@ uint4 v_lastState =0;
 uint8 BUZZ_ALL_TIME =0;
 
 uint8 no_PotTimes =0;//无锅次数
+uint8 no_IgbtTimes =0;//IGBT无故障次数
 
 #pragma inline=forced
 //--initiation
@@ -153,7 +154,7 @@ void defaultValue()
   
   tempreture =0;
   
-  first_open =0;
+  //first_open =0;
   
   delay_temp = 1000;
   
@@ -262,6 +263,7 @@ int main()
         {
           igbt_reset =0;
           igbt_error =0;
+          no_IgbtTimes=0;
         }
     }
         //是否跳转到无锅
@@ -313,16 +315,25 @@ int main()
       }
       else
       {
-        if(igbt_error == 1 && igbt_reset == 40)
+        if(igbt_error == 1)//&& igbt_reset == 40)
         {
           if(!Test_Bit(P3,3)|| !Test_Bit(P3,4))
           {
             igbt_error =0;
             igbt_reset =0;
+            no_IgbtTimes =0;
           }
           else
           {
-            rangeShow = rangeNow;
+            if(no_IgbtTimes>=6)
+            {
+              rangeShow = rangeNow;
+              no_IgbtTimes =0;
+            }
+            else
+            {
+              no_IgbtTimes ++;
+            }
           }
         }        
       }
