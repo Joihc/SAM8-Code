@@ -10,30 +10,24 @@
 void sysInit();
 void ioInit();
 void defaultValue();
-//三相电
-void threeVCheck();
-//档位开关是否开路
-void switchCheck();
-//锅底开路
-void underPotCheckNull();
-//锅底温度
-void underPotNullCheckTemp();
-//线盘温度
-void coilCheckTemp();
-//线盘开路
-void coilCheckNull();
-//IGBT
-void igbtCheckTemp();
-//igbt开路检查
-void igbtCheckNull();
-//igbt驱动
-void igbtDriver();
-//检测是否无锅
-void checkPotNull();
-//万劫不复函数
-void noWayToDrive();
+void DetectNullPot();//无锅检测
+void DetectCoilHot();//线盘超温
+void DetectCoilCut();//线盘探头开路
+void DetectIGBTHot_1();//IGBT超温
+void DetectIGBTCut_1();//IGBT探头开路
+void DetectIGBTHot_2();//IGBT超温
+void DetectIGBTCut_2();//IGBT探头开路
+void DetectVLow();//低压检测
+void DetectVHight();//高压检测
+void DetectVCut();//缺相检测
+void DetectSwitchCut();//档位开关开路
+void DetectUnderPotCut();//锅底探头开路
+void DetectUnderPotHot();//锅底超温
+void DetectIgbtError();//IGBT驱动故障
+void DetectTransformer();//输出互感器装反
+void DetectTransformerCut();//线盘断了或者输出互感器坏了
 void SwitchSet();
-void ViewSet();
+void ViewSet(uint8 ShowNum);
 
  void TAInterupt();
  void P33Interupt();

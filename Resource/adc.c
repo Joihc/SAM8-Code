@@ -357,13 +357,12 @@ __code const short  rtTable4[] =
   0xa	// 300.00		0.1023
 };
 
-uint16 buf[FILTER_N] = {600,600,600,600,600,600};
-uint16 vbuff[FILTER_N] = {600,600,600,600,600,600};
+//uint16 buf[FILTER_N] = {600,600,600};
 
 /// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
 {
-  uint16 three = getVADCNum();// 565 679  310-456V  942     250-465-736
+  uint16 three = getADCNumByNum(3);// 565 679  310-456V  942     250-465-736
   if(three < 250-AREA)
   {
     return 1;
@@ -400,6 +399,10 @@ uint4 get_03ADC(uint4 last_index)
   {
     return last_index == 3 ? 3:0;
   }
+  if(VLDCON & 0x40)
+  {
+    return 1;
+  }
   return last_index;
   //}
   //else if(three > 736)//736.56
@@ -411,7 +414,7 @@ uint4 get_03ADC(uint4 last_index)
 ///* P0.5/ADC6/档位 10K 5V*/  开路 >4.5V 1   0正常
 uint4 get_05ADC()
 {
-  uint16 Switch = getADCNum(5);//
+  uint16 Switch = getADCNumByNum(5);//
   if(Switch > 800)
   {
     return 1;
@@ -421,7 +424,7 @@ uint4 get_05ADC()
 // P0.4/ADC7/IGBT1温度10K 5V  0正常1表示开路  2.3温高  2表示超温   65C
 uint4 get_04ADC()
 {
-  uint16  IGBTTemp = getADCNum(4);
+  uint16  IGBTTemp = getADCNumByNum(4);
   if(IGBTTemp > NULL_NUM)
   {
     return 1;
@@ -439,7 +442,7 @@ uint4 get_04ADC()
 // P1.1/ADC2/IGBT1温度10K 5V   0正常1表示开路  2.3温高  2表示超温  65C
 uint4 get_11ADC()
 {
-  uint16  IGBTTemp = getADCNum(11);
+  uint16  IGBTTemp = getADCNumByNum(11);
   if(IGBTTemp > NULL_NUM)
   {
     return 1;
@@ -457,7 +460,7 @@ uint4 get_11ADC()
 //P0.7/ADC4/线盘温度 10K 5V   0正常 1表示超温 2表示开路   120
 uint4 get_07ADC()
 {
-  uint16  StringTemp = getADCNum(7);
+  uint16  StringTemp = getADCNumByNum(7);
   if(StringTemp >NULL_NUM)
   {
     return 2;
@@ -471,7 +474,7 @@ uint4 get_07ADC()
 /* P0.6/ADC5/锅底温度 10K 5V   0x13*/
 uint4 get_06ADC()
 {
-  uint16  PotTemp = getADCNum(6);
+  uint16  PotTemp = getADCNumByNum(6);
   if(PotTemp >NULL_NUM)
   {
     return 2;
@@ -486,7 +489,7 @@ uint4 get_06ADC()
 /* 输入互感器 P1.3*/
 uint4 get_13ADC()
 {
-  uint16  PotTemp = getADCNum(13);
+  uint16  PotTemp = getADCNumByNum(13);
   if(PotTemp <10)//0.5V
   {
     return 1;
@@ -567,7 +570,7 @@ uint16 getADCNumByNum(uint8 IO_P)
   ei;
   return AD_Dat;
 }
-
+/*
 uint16 getADCNum(uint8 IO_P)
 {
   int4 i,j;
@@ -590,29 +593,14 @@ uint16 getADCNum(uint8 IO_P)
   i= (FILTER_N-1) / 2;
   return buf[i];
 
-}
+}*/
 
-uint16 getVADCNum()
-{
-  int4 i;
-  uint16 filter_temp = 0;
-
-  for(i = 0; i < FILTER_N-1; i++) {
-      vbuff[i] = vbuff[i+1];
-      filter_temp+=vbuff[i];
-  }  
-  vbuff[FILTER_N - 1] = getADCNum(3);
-  filter_temp+=vbuff[FILTER_N - 1];
-  
-
-  return filter_temp/FILTER_N;
-}
 //温度转换
 int16 getTemperatureByAnum(uint8 IO_P)
 {
   uint8 i = 0;
 
-  uint16 Anum = getADCNum(IO_P);
+  uint16 Anum = getADCNumByNum(IO_P);
 
   //-40 -80
   if(Anum > 556)
@@ -665,40 +653,40 @@ int16 getTemperatureByAnum(uint8 IO_P)
 */
 uint8 getSwitchByAnum()
 {
-  uint16 Anum = getADCNum(5);
-  if(Anum > 85 && Anum <123)
+  uint16 Anum = getADCNumByNum(5);
+  if(Anum > 86 && Anum <106)
   {
     return 0;
   }
-  else if(Anum <205)
+  else if(Anum>162 && Anum <182)
   {
     return 1;
   }
-    else if(Anum <266)
+    else if(Anum>227 && Anum <247)
   {
     return 2;
   }
-    else if(Anum <328)
+    else if(Anum>284 && Anum <304)
   {
     return 3;
   }
-    else if(Anum <410)
+    else if(Anum>384 && Anum <394)
   {
     return 4;
   }
-    else if(Anum <471)
+    else if(Anum>445&&Anum <465)
   {
     return 5;
   }
-    else if(Anum <532)
+    else if(Anum>502 && Anum <522)
   {
     return 6;
   }
-    else if(Anum <590)
+    else if(Anum>568 && Anum <588)
   {
     return 7;
   }
-    else if(Anum <650)
+    else if(Anum>620&& Anum <640)
   {
     return 8;
   }

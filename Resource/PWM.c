@@ -26,17 +26,14 @@ void closePWM()
 #pragma inline=forced
 void openPWM()
 {
-  if(Test_Bit(P3,3))
-  {
-    P1CONL = 0xFD;
-    AJ_ON;
-  }
+  P1CONL = 0xFD;
+  AJ_ON;
 }
 
 void fixPWM(uint8 index)
 {
-    uint16 outCurrent = getADCNum(12);//输出互感器
-    uint16 inCurrent = getADCNum(13);//输入互感器
+    uint16 outCurrent = getADCNumByNum(12);//输出互感器
+    uint16 inCurrent = getADCNumByNum(13);//输入互感器
     uint16 p=0;
     di;
     switch(index)
@@ -135,7 +132,7 @@ void testPWM(uint8 index)
 }
 uint4 getPWMRate()
 {
-  uint16 range  = getADCNum(12);
+  uint16 range  = getADCNumByNum(12);
   if(range>PWM8)
   {
     return 8;

@@ -19,7 +19,7 @@
 #endif
 
 #define NULL_NUM (1000)//开路数字  4.98V
-#define FILTER_N (6) //中位数
+#define FILTER_N (3) //中位数
 #define AREA (5)//自身模糊区大小
 
 uint4 get_12ADC();
