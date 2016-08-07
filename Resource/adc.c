@@ -519,7 +519,7 @@ module enters an idle state.
 6. The digital conversion result can now be read from the ADDATAH and ADDATAL register.
 */
 
-uint16 getADCNumByNum(uint8 IO_P)
+uint16 getADCNum(uint8 IO_P)
 {
   uint16 AD_Dat =0;
   uint16 Tmp=0;
@@ -570,15 +570,16 @@ uint16 getADCNumByNum(uint8 IO_P)
   ei;
   return AD_Dat;
 }
-/*
-uint16 getADCNum(uint8 IO_P)
+
+uint16 getADCNumByNum(uint8 IO_P)
 {
   int4 i,j;
+  uint16 buf[FILTER_N];
   uint16 filter_temp = 0;
 
 
   for(i = 0; i < FILTER_N; i++) {
-      buf[i] = getADCNumByNum(IO_P);
+      buf[i] = getADCNum(IO_P);
   }
   for(j = 0; j < FILTER_N - 1; j++) {
     for(i = 0; i < FILTER_N - 1 - j; i++) {
@@ -592,8 +593,7 @@ uint16 getADCNum(uint8 IO_P)
 
   i= (FILTER_N-1) / 2;
   return buf[i];
-
-}*/
+}
 
 //ÎÂ¶È×ª»»
 int16 getTemperatureByAnum(uint8 IO_P)
