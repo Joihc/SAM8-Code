@@ -22,8 +22,9 @@ __code const uint8 RightCode[]={
   0x00,//不显示
 
   0x77, //A 0111 0111
-  0x1F, //B 0001 1111
+  0x1F, //b 0001 1111
   0x4E, //C 0100 1110
+  0x3D, //d 0 011 1101
 
 };
 __code const uint8 LeftCode[]={
@@ -245,17 +246,17 @@ void set_TM1629_LeftNum(unsigned char n)
 }
 /* up = 101 无锅
         102 线盘超温
-        103 线盘探头开路
+        103 线盘开路
         104 IGBT超温
-        105 IGBT 开路
-        106 电压低
-        107 电压高
-        108 电压缺相
-        109 档位开关开路
-        110 锅底探头开路
-        111 锅底探头超温
-
-        112 igbt驱动不通
+        105 IGBT开路
+        106 锅底超温
+        107 锅底开路
+        108 电压低或缺相
+        109 电压高
+        110 
+        111 线盘或者互感器损坏
+        112 驱动故障
+        113 档位开路
 
         200+KW 无锅
         KW     正常
@@ -345,7 +346,7 @@ void set_TM1629_Up(uint8 up)
     tail = 6;
     waterState = OFF;
     fellState = OFF;
-    tempState = OFF;
+    tempState = FLUSH;
     potState = OFF;
     hotState = OFF;
     proState = FLUSH;
@@ -419,8 +420,8 @@ void set_TM1629_Up(uint8 up)
     head = 12;
     tail = 13;
     waterState = OFF;
-    fellState = OFF;
-    tempState = FLUSH;
+    fellState = FLUSH;
+    tempState = OFF;
     potState = OFF;
     hotState = OFF;
     proState = FLUSH;
@@ -435,6 +436,21 @@ void set_TM1629_Up(uint8 up)
     tail = 14;
     waterState = OFF;
     fellState = FLUSH;
+    tempState = OFF;
+    potState = OFF;
+    hotState = OFF;
+    proState = FLUSH;
+    phoneState = FLUSH;
+    vlotateState = ON;
+    upNumState = FLUSH;
+    kwState =OFF;
+    buzzState=ON;
+    break;
+    case 113:
+    head = 12;
+    tail = 15;
+    waterState = OFF;
+    fellState = OFF;
     tempState = OFF;
     potState = OFF;
     hotState = OFF;

@@ -22,6 +22,7 @@ __code const uint8 LED7Code[]={
         0x83,//b 1 000 0011
         0xFF,//空白
         0xC9,//C 1100 1001
+        0x86,//d 1000 0110
 };
 
 //灯状态 0=不亮 1=亮  2= 闪烁
@@ -43,17 +44,17 @@ uint4 last74State;
 
 /* up = 101 无锅
         102 线盘超温
-        103 线盘探头开路
+        103 线盘开路
         104 IGBT超温
-        105 IGBT 开路
-        106 电压低
-        107 电压高
-        108 电压缺相
-        109 档位开关开路
-        110 锅底探头开路
-        111 锅底探头超温
+        105 IGBT开路
+        106 锅底超温
+        107 锅底开路
+        108 电压低或缺相
+        109 电压高
+        110 
+        111 线盘或者互感器损坏
         112 驱动故障
-
+        113 档位开路
         200+KW 无锅
         KW     正常
         setRedState_74HC164(FLUSH);
@@ -146,6 +147,13 @@ void setNum_74HC164(uint8 num)
     redLedStatus = FLUSH;
     blueLedStatus = OFF;
     screenNum = LED7Code[13];
+    break;
+    case 113:
+    BuzzState = FLUSH;
+    numLedStatus = FLUSH;
+    redLedStatus = FLUSH;
+    blueLedStatus = OFF;
+    screenNum = LED7Code[14];
     break;
     default:
     BuzzState = OFF;

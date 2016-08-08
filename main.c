@@ -23,7 +23,7 @@ __code const uint8 POWER_RATE[] =
 #ifdef P_15KW
 	0, 2 , 4 , 6, 8 , 10 , 12 , 13 , 15
 #elif defined P_20KW
-	0, 3 , 5 , 7 , 9 , 12, 15, 18, 20
+	0, 3 , 5 , 7 , 9 , 11, 14, 17, 20
 #elif defined P_25KW
 	0, 4 , 6 , 8 , 12, 16,18, 22,25
 #elif defined P_30KW
@@ -241,13 +241,13 @@ int main()
 		//低压
 		if ((statusViewNum & ((uint16)1 << 7)) && !haveViewSet)
 		{
-			ViewSet(106);
+			ViewSet(108);
 			haveViewSet = TRUE;
 		}
 		//高压
 		if ((statusViewNum & ((uint16)1 << 8)) && !haveViewSet)
 		{
-			ViewSet(107);
+			ViewSet(109);
 			haveViewSet = TRUE;
 		}
 		//缺相
@@ -259,7 +259,7 @@ int main()
 		//档位开路
 		if ((statusViewNum & ((uint16)1 << 10)) && !haveViewSet)
 		{
-			ViewSet(109);
+			ViewSet(113);
 			haveViewSet = TRUE;
 		}
 		//线盘开路
@@ -283,7 +283,7 @@ int main()
 		//锅底探头开路
 		if ((statusViewNum & ((uint16)1 << 11)) && !haveViewSet && !temperatureCheckTime)
 		{
-			ViewSet(110);
+			ViewSet(107);
 			haveViewSet = TRUE;
 		}
                 CLEAR_WD;
@@ -336,7 +336,7 @@ int main()
 			//锅底超温
 			if ((statusViewNum & ((uint16)1 << 12)) && !haveViewSet)
 			{
-				ViewSet(111);
+				ViewSet(106);
 				haveViewSet = TRUE;
 			}
                         
@@ -349,9 +349,9 @@ int main()
                                 igbtErrorCheckTime--;
                                 if (igbtErrorCheckTime==0)
 				{
-				    igbtErrorCheckTime =60;
+				    igbtErrorCheckTime =30;
 				}
-				if(igbtErrorCheckTime == 59)
+				if(igbtErrorCheckTime == 28)
 				{
                                     fixPWM(rangeNow);
 				}
@@ -366,7 +366,7 @@ int main()
 			}
 			else
 			{
-			  igbtErrorCheckTime = 60;
+			  igbtErrorCheckTime = 30;
 			}
                         /*
 			//输出互感器装反
@@ -401,13 +401,13 @@ int main()
 			//线盘不通或者输出互感器损坏
 			if ((statusViewNum & ((uint16)1 << 15)) && !haveViewSet && !checkTimeOn)
 			{
-				ViewSet(112);
+				ViewSet(111);
 				haveViewSet = TRUE;
 				checkTimeOn = TRUE;
                                 cTransformerCutCheckTime--;
 				if (cTransformerCutCheckTime==0)
 				{
-					cTransformerCutCheckTime=60;
+					cTransformerCutCheckTime=30;
 				}
 				if(cTransformerCutCheckTime<2)
 				{
@@ -424,7 +424,7 @@ int main()
 			}
 			else
 			{
-				cTransformerCutCheckTime = 60;
+				cTransformerCutCheckTime = 30;
 			}
                         //无锅
 			if ((statusViewNum & ((uint16)1 << 0)) && !haveViewSet && !checkTimeOn)
@@ -435,9 +435,9 @@ int main()
                                 nullPotCheckTime--;
 				if (nullPotCheckTime == 0)
 				{
-				    nullPotCheckTime = 60;
+				    nullPotCheckTime = 30;
 				}
-				if(nullPotCheckTime<12)
+				if(nullPotCheckTime<4)
                                 {
                                   fixPWM(rangeNow);
                                 }
@@ -452,7 +452,7 @@ int main()
 			}
 			else
 			{
-				nullPotCheckTime = 60;
+				nullPotCheckTime = 30;
 			}
 			if (!haveViewSet)
 			{
@@ -534,7 +534,7 @@ void DetectNullPot()
 		if (get_13ADC() != 1)
 			return;
                 nullPot++;
-		if (nullPot >= 6)
+		if (nullPot >= 4)
 		{
 			nullPot = 0;
 			statusViewNum |= temp_2;//置1 无锅状态
@@ -1195,7 +1195,7 @@ void DetectTransformerCut()
 		if (getADCNumByNum(12))
 			return;
 		cTransformerCut++;
-		if (cTransformerCut >= 3)
+		if (cTransformerCut >= 2)
 		{
 			cTransformerCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
