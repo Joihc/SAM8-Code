@@ -19,7 +19,7 @@
 #endif
 
 #define NULL_NUM (1000)//开路数字  4.98V
-#define FILTER_N (5) //中位数
+#define FILTER_N (30) //采样个数
 #define AREA (5)//自身模糊区大小
 
 uint4 get_12ADC();
@@ -30,7 +30,6 @@ uint4 get_11ADC();
 uint4 get_07ADC();
 uint4 get_06ADC();
 uint4 get_13ADC();
-uint4 get_13ADCQuickly();
 
 uint16 getADCNumByNum(uint8 IO_P);
 uint16 getADCNum(uint8 IO_P);

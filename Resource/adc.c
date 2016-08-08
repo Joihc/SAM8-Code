@@ -362,20 +362,20 @@ __code const short  rtTable4[] =
 /// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
 {
-  uint16 three = getADCNumByNum(3);// 565 679  310-456V  942     250-465-736
+  uint16 three = getADCNumByNum(3);// 565 679  310-456V  942     250-500-760
   if(three < 250-AREA)
   {
     return 1;
   }
-  else if(three >250+AREA && three <465-AREA)
+  else if(three >250+AREA && three <500-AREA)
   {
     return 2;
   }
-  else if(three >465+AREA && three <736-AREA)
+  else if(three >500+AREA && three <760-AREA)
   {
     return 0;
   }
-  else if(three >736+AREA)
+  else if(three >760+AREA)
   {
     return 3;
   }
@@ -384,7 +384,7 @@ uint4 get_03ADC(uint4 last_index)
   {
     return last_index==1?1:2;
   }
-  else if(three >=465-AREA && three <=465+AREA)
+  else if(three >=500-AREA && three <=500+AREA)
   {
     if(last_index ==2 || last_index ==1)
     {
@@ -395,7 +395,7 @@ uint4 get_03ADC(uint4 last_index)
       return 0;
     }
   }
-  else if(three >=736-AREA && three <= 736+AREA)
+  else if(three >=760-AREA && three <= 760+AREA)
   {
     return last_index == 3 ? 3:0;
   }
@@ -496,15 +496,6 @@ uint4 get_13ADC()
   }
   return 0;
 }
-uint4 get_13ADCQuickly()
-{
-  uint16  PotTemp = getADCNumByNum(13);
-  if(PotTemp <10)//0.5V  60
-  {
-    return 1;
-  }
-  return 0;
-}
 /*
 INTERNAL A/D CONVERSION PROCEDURE
 1. Analog input must remain between the voltage range of VSS and AVREF.
@@ -518,7 +509,7 @@ a check can be made to verify that the conversion was successful.
 module enters an idle state.
 6. The digital conversion result can now be read from the ADDATAH and ADDATAL register.
 */
-
+#pragma inline=forced
 uint16 getADCNum(uint8 IO_P)
 {
   uint16 AD_Dat =0;
@@ -573,14 +564,16 @@ uint16 getADCNum(uint8 IO_P)
 
 uint16 getADCNumByNum(uint8 IO_P)
 {
-  int4 i,j;
-  uint16 buf[FILTER_N];
+  int4 i;
+  //uint16 buf[FILTER_N];
   uint16 filter_temp = 0;
 
 
   for(i = 0; i < FILTER_N; i++) {
-      buf[i] = getADCNum(IO_P);
+      filter_temp+= getADCNum(IO_P);
+      CLEAR_WD;
   }
+  /*
   for(j = 0; j < FILTER_N - 1; j++) {
     for(i = 0; i < FILTER_N - 1 - j; i++) {
       if(buf[i] > buf[i + 1]) {
@@ -590,9 +583,10 @@ uint16 getADCNumByNum(uint8 IO_P)
       }
     }
   }
+  */
 
-  i= (FILTER_N-1) / 2;
-  return buf[i];
+  filter_temp= filter_temp/FILTER_N;
+  return filter_temp;
 }
 
 //温度转换
