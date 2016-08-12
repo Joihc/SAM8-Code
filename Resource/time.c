@@ -6,9 +6,9 @@
 */
 void delay(volatile uint16 ms)
 {
-    ms*=140;
+    ms=ms*12+10;//140
     do{
-      nop; ms--;
+      asm("nop"); ms--;
     }while(ms!=0);
 }
 void delayus(volatile uint8 us)
