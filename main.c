@@ -36,46 +36,50 @@ uint8 count_60ms = 0;
 uint8 count_1s = 0;
 uint8 count_2s = 0;
 
-uint8 BUZZ_ALL_TIME = 0;//蜂鸣器鸣叫总时长
+//uint8 BUZZ_ALL_TIME = 0;//蜂鸣器鸣叫总时长
 uint8 buzzTime = 0;		//蜂鸣器鸣叫时间
 
 //uint8 FAN_ALL_TIME = 0;	//风扇旋转总时长
 uint8 fanTime = FAN_ALL_TIME;		//风扇旋转时间 0表示不计时状态 >0表示计时状态
 
-uint4 rangeNext = 0;		//下次档位
+//uint4 rangeNext = 0;		//下次档位
 uint4 rangeNow = 0;			//当前档位
 
 uint16 statusViewNum = 0;		//每位检测到状态表示左到右,1表示故障0表示正常  0无锅/1线盘超温/2线盘开路/3IGBT1超温/4IGBT1开路/5IGBT2超温/6IGBT2开路
 								//7电压低/8电压高/9缺相/10档位开关开路/11锅底开路/12锅底超温/13IGBT驱动故障/14输出互感器反/15线盘不通
 uint4 nullPot = 0;//检测无锅次数
-uint4 coilHot = 0;//线盘超温次数
-uint4 coilCut = 0;//线盘开路次数
-uint4 igbtHot_1 = 0;//IGBT1超温次数
-uint4 igbtCut_1 = 0;//IGBT1开路次数
-uint4 igbtHot_2 = 0;//IGBT2超温次数
-uint4 igbtCut_2 = 0;//IGBT2开路次数
+//uint4 coilHot = 0;//线盘超温次数
+//uint4 coilCut = 0;//线盘开路次数
+//uint4 igbtHot_1 = 0;//IGBT1超温次数
+//uint4 igbtCut_1 = 0;//IGBT1开路次数
+//uint4 igbtHot_2 = 0;//IGBT2超温次数
+//uint4 igbtCut_2 = 0;//IGBT2开路次数
 uint4 vLow = 0;   //电压低次数
 uint4 vHight = 0; //电压高次数
 uint4 vCut = 0;   //电压缺相次数
-uint4 switchCut = 0;//档位开关开路次数
-uint4 underPotCut = 0;//锅底探头开路
-uint4 underPotHot = 0;//锅底探头超温
+//uint4 switchCut = 0;//档位开关开路次数
+//uint4 underPotCut = 0;//锅底探头开路
+//uint4 underPotHot = 0;//锅底探头超温
 //uint4 igbtError = 0;//IGBT驱动故障
 //uint4 cTransformer = 0;//输出互感器
 uint4 cTransformerCut = 0;//线盘状态
 
-uint4 temp = 0;//临时检测数据
+uint4 nullPotToLay=0;//无锅退出延迟
+uint4 nulligbtToLay=0;//igbterror退出延迟次数
+//uint4 temp = 0;//临时检测数据
 
 uint4 checkTimeOn = FALSE;//无延时检测
 uint8 nullPotCheckTime = 60;//检锅延时
 uint8 igbtErrorCheckTime = 60;//igbt驱动恢复延时
 //uint8 cTransformerChenckTime = 20;//输出互感器装反延时
 uint8 cTransformerCutCheckTime = 60;//输出互感器或线盘检测
-uint8 temperatureCheckTime = 255;//温度检测延时
+uint8 temperatureCheckTime = 40;//温度检测延时
 
+uint4 turnOnLay=0;
 uint4 nullPotLay=0;//无锅显示延迟
 uint4 nulligbtLay=0;//igbtError显示延迟
-uint4 tempLay=0;//温度显示延迟
+
+//uint4 tempLay=0;//温度显示延迟
 
 #pragma inline=forced
 								   //--initiation
@@ -123,10 +127,10 @@ void ioInit()
 #endif
 
 				  /*  P3 I/0口*/
-	P3CONH = 0x04;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/上升) 01(P3.3/下降沿)
+	P3CONH = 0x05;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/上升) 01(P3.3/下降沿)
 	P3CONL = 0x00;//000(P3.2) 000(P3.1) 00(P3.0)
 
-	P3INT = 0x00;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/上升)10 00(P3.3/下降沿)10
+	P3INT = 0x0A;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/上升)10 00(P3.3/下降沿)10
 	P3PND = 0x00;//0000 1(P3.6/SCLK) 0(P3.5/SDAT) 0(P3.4/下降沿) 0(P3.3/下降沿) -中断挂起 置0重置
 				 /*  P4 I/0口 全部挂起*/
 }
@@ -139,42 +143,43 @@ void defaultValue()
 	count_1s = 0;
 	count_2s = 0;
 
-	BUZZ_ALL_TIME = 0;//蜂鸣器鸣叫总时长
+	//BUZZ_ALL_TIME = 0;//蜂鸣器鸣叫总时长
 	buzzTime = 0;		//蜂鸣器鸣叫时间
 
 	//FAN_ALL_TIME = 0;	//风扇旋转总时长
 	fanTime = FAN_ALL_TIME;		//风扇旋转时间 0表示不计时状态 >0表示计时状态
 
-	rangeNext = 0;		//下次档位
+	//rangeNext = 0;		//下次档位
 	rangeNow = 0;			//当前档位
 
 	statusViewNum = 0;		//每位检测到状态表示左到右,1表示故障0表示正常  0无锅/1线盘超温/2线盘开路/3IGBT1超温/4IGBT1开路/5IGBT2超温/6IGBT2开路
 							//7电压低/8电压高/9缺相/10档位开关开路/11锅底开路/12锅底超温/13IGBT驱动故障/14输出互感器反/15线盘不通
 	nullPot = 0;//检测无锅次数
-	coilHot = 0;//线盘超温次数
-	coilCut = 0;//线盘开路次数
-	igbtHot_1 = 0;//IGBT1超温次数
-	igbtCut_1 = 0;//IGBT1开路次数
-	igbtHot_2 = 0;//IGBT2超温次数
-	igbtCut_2 = 0;//IGBT2开路次数
+	//coilHot = 0;//线盘超温次数
+	//coilCut = 0;//线盘开路次数
+	//igbtHot_1 = 0;//IGBT1超温次数
+	//igbtCut_1 = 0;//IGBT1开路次数
+	//igbtHot_2 = 0;//IGBT2超温次数
+	//igbtCut_2 = 0;//IGBT2开路次数
 	vLow = 0;   //电压低次数
 	vHight = 0; //电压高次数
 	vCut = 0;   //电压缺相次数
-	switchCut = 0;//档位开关开路次数
-	underPotCut = 0;//锅底探头开路
-	underPotHot = 0;//锅底探头超温
+	//switchCut = 0;//档位开关开路次数
+	//underPotCut = 0;//锅底探头开路
+	//underPotHot = 0;//锅底探头超温
 	//igbtError = 0;//IGBT驱动故障
 	//cTransformer = 0;//输出互感器
 	cTransformerCut = 0;//线盘状态
 
-	temp = 0;//临时检测数据
+	//temp = 0;//临时检测数据
 
 	nullPotCheckTime = 60;//检锅延时
 	//igbtErrorCheckTime = 20;//igbt恢复延时
 	//cTransformerChenckTime = 20;//输出互感器装反延时
 	cTransformerCutCheckTime = 20;//输出互感器或线盘检测
-	temperatureCheckTime = 250;//温度检测延时
+	temperatureCheckTime = 20;//温度检测延时20s
         
+        turnOnLay =0;
         nullPotLay =0;
         nulligbtLay =0;
 }
@@ -194,17 +199,18 @@ int main()
 	defaultValue();
 
 	ei;
-	BUZZ_ALL_TIME = 255;
-	BUZZ_ON;
-        delay(5000);
-	BUZZ_ALL_TIME = 4;
+        while(turnOnLay<TURN_ALL_TIME)
+        {
+          BUZZ_ON;
+        }
+	//BUZZ_ALL_TIME = 4;
 
 	while (1)
 	{
 #ifdef DEBUG
 		CLEAR_WD;
 		SwitchSet();
-		testPWM(rangeNow);
+		ViewSet(rangeNow);
 #else
                 CLEAR_WD;
 		haveViewSet = FALSE;
@@ -234,7 +240,6 @@ int main()
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {
 		  DetectIgbtError();//IGBT驱动故障
-		  //DetectTransformer();//输出互感器装反
 		  DetectTransformerCut();//线盘断了或者输出互感器坏了
                   DetectNullPot();//无锅检测
                 }
@@ -303,16 +308,14 @@ int main()
 			}
 			fixPWM(0);
                         nullPot =0;//无锅次数
-                       // igbtError=0;//IGBT故障
-                        //cTransformer = 0;//输出互感器
 	                cTransformerCut = 0;//线盘状态
                         //重置故障
+                        statusViewNum &= ~((uint16)1 << 0);//无锅正常
                         statusViewNum &= ~((uint16)1 << 1);//线盘超温置0 正常
                         statusViewNum &= ~((uint16)1 << 3);//IGBT1超温置0 正常
                         statusViewNum &= ~((uint16)1 << 5);//IGBT2超温置0 正常
                         statusViewNum &= ~((uint16)1 << 12);//锅底超温置0 正常
                         statusViewNum &= ~((uint16)1 << 13);//IGBT驱动故障置0 正常
-                        //statusViewNum &= ~((uint16)1 << 14);//输出互感器装反置0 正常
                         statusViewNum &= ~((uint16)1 << 15);//线盘不通或者输出互感器损坏置0 正常
 		}
 		else
@@ -364,14 +367,19 @@ int main()
                                       nulligbtLay++;
                                     }
 				}
-				if(igbtErrorCheckTime == 58)
+				if(igbtErrorCheckTime ==50)
 				{
-                                    fixPWM(rangeNow);
-				}
-                                else
-                                {
-                                    fixPWM(0);
+                                    AJ_OFF;
+                                    delay(3);
+                                    AJ_ON;//复位
                                 }
+                                    
+                                fixPWM(rangeNow);
+				//}
+                                //else
+                                //{
+                                //    fixPWM(0);
+                                // }
                                 nullPot =0;//无锅次数
                                 //  igbtError=0;//IGBT驱动故障
                                 //cTransformer = 0;//输出互感器
@@ -382,36 +390,6 @@ int main()
                           nulligbtLay =0;
 			  igbtErrorCheckTime = 60;
 			}
-                        /*
-			//输出互感器装反
-			if ((statusViewNum & ((uint16)1 << 14)) && !haveViewSet && !checkTimeOn)
-			{
-				ViewSet(112);
-				haveViewSet = TRUE;
-				checkTimeOn = TRUE;
-                                cTransformerChenckTime--;
-				if (cTransformerChenckTime==0)
-				{
-					cTransformerChenckTime=60;
-				}
-				if(cTransformerChenckTime<2)
-				{
-				  fixPWM(rangeNow);
-				}
-                                else
-                                {
-                                  fixPWM(0);
-                                }
-                                nullPot =0;//无锅次数
-                                //  igbtError=0;//IGBT驱动故障
-                                //cTransformer = 0;//输出互感器
-	                        cTransformerCut = 0;//线盘状态
-			}
-			else
-			{
-				cTransformerChenckTime = 60;
-			}
-                        */
 			//线盘不通或者输出互感器损坏
 			if ((statusViewNum & ((uint16)1 << 15)) && !haveViewSet && !checkTimeOn)
 			{
@@ -502,10 +480,6 @@ int main()
 					fixPWM(rangeNow);//开启输出
 					ViewSet(rangeNow);//显示档位
 					fanTime = 0;//开启风机
-                                        if(temperatureCheckTime)
-                                        {
-					  temperatureCheckTime--;//开路延时倒计时
-                                        }
 				}
 			}
 			else
@@ -531,7 +505,7 @@ int main()
 void DetectNullPot()
 {
 	uint16 temp_2 = (uint16)1 << 0;
-	temp = get_13ADC();// 1表示无锅
+        uint4 temp = get_13ADC();// 1表示无锅
 	if ((temp != 1) && !(statusViewNum & temp_2))
 	{
 		//检测到有锅且显示有锅
@@ -572,11 +546,11 @@ void DetectNullPot()
 void DetectCoilHot()
 {
 	uint16 temp_2 = (uint16)1 << 1;
-	temp = get_07ADC();//1 温高
+	uint4 temp = get_07ADC();//1 温高
 	if ((temp != 1) && !(statusViewNum & temp_2))
 	{
 		//检查温度正常且显示温度正常
-		coilHot = 0;
+		//coilHot = 0;
 		return;
 	}
 	if ((temp != 1) && (statusViewNum & temp_2))
@@ -586,27 +560,27 @@ void DetectCoilHot()
 		//if (get_07ADC() == 1)
 		//	return;
 		//statusViewNum &= ~temp_2;//置0 正常
-		coilHot = 0;
+		//coilHot = 0;
 		return;
 	}
 	if ((temp == 1) && (statusViewNum & temp_2))
 	{
 		//检查温度不正常且显示温度不正常
-		coilHot = 0;
+		//coilHot = 0;
 		return;
 	}
 	if ((temp == 1) && !(statusViewNum & temp_2))
 	{
 		//检查温度不正常且显示温度正常
-		delay(2);//延时2s
+		delay(2);//延时2ms
 		if (get_07ADC() != 1)
 			return;
-		coilHot++;
-		if (coilHot >= 3)
-		{
-			coilHot = 0;
+		//coilHot++;
+		//if (coilHot >= 3)
+		//{
+		//	coilHot = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 
 }
@@ -614,11 +588,11 @@ void DetectCoilHot()
 void DetectCoilCut()
 {
 	uint16 temp_2 = (uint16)1 << 2;
-	temp = get_07ADC();//2 探头开路
+	uint4 temp = get_07ADC();//2 探头开路
 	if ((temp != 2) && !(statusViewNum & temp_2))
 	{
 		//检查正常且显示正常
-		coilCut = 0;
+		//coilCut = 0;
 		return;
 	}
 	if ((temp != 2) && (statusViewNum & temp_2))
@@ -628,13 +602,13 @@ void DetectCoilCut()
 		if (get_07ADC() == 2)
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
-		coilCut = 0;
+		//coilCut = 0;
 		return;
 	}
 	if ((temp == 2) && (statusViewNum & temp_2))
 	{
 		//检查不正常且显示不正常
-		coilCut = 0;
+		//coilCut = 0;
 		return;
 	}
 	if ((temp == 2) && !(statusViewNum & temp_2))
@@ -643,23 +617,23 @@ void DetectCoilCut()
 		delay(2);//延时2s
 		if (get_07ADC() != 2)
 			return;
-		coilCut++;
-		if (coilCut >= 3)
-		{
-			coilCut = 0;
+		//coilCut++;
+		//if (coilCut >= 3)
+		//{
+		//	coilCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectIGBTHot_1()
 {
 	uint16 temp_2 = (uint16)1 << 3;
-	temp = get_04ADC();//2高温
+	uint4 temp = get_04ADC();//2高温
 	if ((temp != 2) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		igbtHot_1 = 0;
+		//igbtHot_1 = 0;
 		return;
 	}
 	if ((temp != 2) && (statusViewNum & temp_2))
@@ -669,13 +643,13 @@ void DetectIGBTHot_1()
 		//if (get_04ADC() == 2)
 		//	return;
 		//statusViewNum &= ~temp_2;//置0 正常
-		igbtHot_1 = 0;
+		//igbtHot_1 = 0;
 		return;
 	}
 	if ((temp == 2) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		igbtHot_1 = 0;
+		//igbtHot_1 = 0;
 		return;
 	}
 	if ((temp == 2) && !(statusViewNum & temp_2))
@@ -684,23 +658,23 @@ void DetectIGBTHot_1()
 		delay(2);
 		if (get_04ADC() != 2)
 			return;
-		igbtHot_1++;
-		if (igbtHot_1 >= 3)
-		{
-			igbtHot_1 = 0;
+		//igbtHot_1++;
+		//if (igbtHot_1 >= 3)
+		//{
+		//	igbtHot_1 = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectIGBTCut_1()
 {
 	uint16 temp_2 = (uint16)1 << 4;
-	temp = get_04ADC();//1开路
+	uint4 temp = get_04ADC();//1开路
 	if ((temp != 1) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		igbtCut_1 = 0;
+		//igbtCut_1 = 0;
 		return;
 	}
 	if ((temp != 1) && (statusViewNum & temp_2))
@@ -710,13 +684,13 @@ void DetectIGBTCut_1()
 		if (get_04ADC() == 1)
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
-		igbtCut_1 = 0;
+		//igbtCut_1 = 0;
 		return;
 	}
 	if ((temp == 1) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		igbtCut_1 = 0;
+		//igbtCut_1 = 0;
 		return;
 	}
 	if ((temp == 1) && !(statusViewNum & temp_2))
@@ -725,23 +699,23 @@ void DetectIGBTCut_1()
 		delay(2);
 		if (get_04ADC() != 1)
 			return;
-		igbtCut_1++;
-		if (igbtCut_1 >= 3)
-		{
-			igbtCut_1 = 0;
+		//igbtCut_1++;
+		//if (igbtCut_1 >= 3)
+		//{
+		//	igbtCut_1 = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectIGBTHot_2()
 {
 	uint16 temp_2 = (uint16)1 << 5;
-	temp = get_11ADC();//2高温
+	uint4 temp = get_11ADC();//2高温
 	if ((temp != 2) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		igbtHot_2 = 0;
+		//igbtHot_2 = 0;
 		return;
 	}
 	if ((temp != 2) && (statusViewNum & temp_2))
@@ -751,13 +725,13 @@ void DetectIGBTHot_2()
 		//if (get_11ADC() == 2)
 		//	return;
 		//statusViewNum &= ~temp_2;//置0 正常
-		igbtHot_2 = 0;
+		//igbtHot_2 = 0;
 		return;
 	}
 	if ((temp == 2) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		igbtHot_2 = 0;
+		//igbtHot_2 = 0;
 		return;
 	}
 	if ((temp == 2) && !(statusViewNum & temp_2))
@@ -766,23 +740,23 @@ void DetectIGBTHot_2()
 		delay(2);
 		if (get_11ADC() != 2)
 			return;
-		igbtHot_2++;
-		if (igbtHot_2 >= 3)
-		{
-			igbtHot_2 = 0;
+		//igbtHot_2++;
+		//if (igbtHot_2 >= 3)
+		//{
+		//	igbtHot_2 = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectIGBTCut_2()
 {
 	uint16 temp_2 = (uint16)1 << 6;
-	temp = get_11ADC();//1开路
+	uint4 temp = get_11ADC();//1开路
 	if ((temp != 1) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		igbtCut_2 = 0;
+		//igbtCut_2 = 0;
 		return;
 	}
 	if ((temp != 1) && (statusViewNum & temp_2))
@@ -792,13 +766,13 @@ void DetectIGBTCut_2()
 		if (get_11ADC() == 1)
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
-		igbtCut_2 = 0;
+		//igbtCut_2 = 0;
 		return;
 	}
 	if ((temp == 1) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		igbtCut_2 = 0;
+		//igbtCut_2 = 0;
 		return;
 	}
 	if ((temp == 1) && !(statusViewNum & temp_2))
@@ -807,12 +781,12 @@ void DetectIGBTCut_2()
 		delay(2);
 		if (get_11ADC() != 1)
 			return;
-		igbtCut_2++;
-		if (igbtCut_2 >= 3)
-		{
-			igbtCut_2 = 0;
+		//igbtCut_2++;
+		//if (igbtCut_2 >= 3)
+		//{
+		//	igbtCut_2 = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
@@ -820,6 +794,7 @@ void DetectVLow()
 {
 	uint16 temp_2 = (uint16)1 << 7;
 	uint4 temp_1 = 0;
+        uint4 temp = 0;
 	if (statusViewNum & temp_2)
 	{
 		//电压低
@@ -877,6 +852,7 @@ void DetectVHight()
 {
 	uint16 temp_2 = (uint16)1 << 8;
 	uint4 temp_1 = 0;
+        uint4 temp =0;
 	if ((statusViewNum & ((uint16)1 << 7)))
 	{
 		//电压低
@@ -934,6 +910,7 @@ void DetectVCut()
 {
 	uint16 temp_2 = (uint16)1 << 9;
 	uint4 temp_1 = 0;
+        uint4 temp =0;
 	if ((statusViewNum & ((uint16)1 << 7)))
 	{
 		//电压低
@@ -990,11 +967,11 @@ void DetectVCut()
 void DetectSwitchCut()
 {
 	uint16 temp_2 = (uint16)1 << 10;
-	temp = get_05ADC();//1 开路
+	uint4 temp = get_05ADC();//1 开路
 	if ((temp != 1) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		switchCut = 0;
+		//switchCut = 0;
 		return;
 	}
 	if ((temp != 1) && (statusViewNum & temp_2))
@@ -1004,13 +981,13 @@ void DetectSwitchCut()
 		if (get_05ADC() == 1)
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
-		switchCut = 0;
+		//switchCut = 0;
 		return;
 	}
 	if ((temp == 1 )&& (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		switchCut = 0;
+		//switchCut = 0;
 		return;
 	}
 	if ((temp == 1) && !(statusViewNum & temp_2))
@@ -1019,23 +996,23 @@ void DetectSwitchCut()
 		delay(2);
 		if (get_05ADC() != 1)
 			return;
-		switchCut++;
-		if (switchCut >= 3)
-		{
-			switchCut = 0;
+		//switchCut++;
+		//if (switchCut >= 3)
+		//{
+		//	switchCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectUnderPotCut()
 {
 	uint16 temp_2 = (uint16)1 << 11;
-	temp = get_06ADC();//2 锅底探头开路
+	uint4 temp = get_06ADC();//2 锅底探头开路
 	if ((temp != 2) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		underPotCut = 0;
+		//underPotCut = 0;
 		return;
 	}
 	if ((temp != 2) && (statusViewNum & temp_2))
@@ -1045,13 +1022,13 @@ void DetectUnderPotCut()
 		if (get_06ADC() == 2)
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
-		underPotCut = 0;
+		//underPotCut = 0;
 		return;
 	}
 	if ((temp == 2) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		underPotCut = 0;
+		//underPotCut = 0;
 		return;
 	}
 	if ((temp == 2) && !(statusViewNum & temp_2))
@@ -1060,23 +1037,23 @@ void DetectUnderPotCut()
 		delay(2);
 		if (get_06ADC() != 2)
 			return;
-		underPotCut++;
-		if (underPotCut >= 3)
-		{
-			underPotCut = 0;
+		//underPotCut++;
+		//if (underPotCut >= 3)
+		//{
+		//	underPotCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectUnderPotHot()
 {
 	uint16 temp_2 = (uint16)1 << 12;
-	temp = get_06ADC();//1超温
+	uint4 temp = get_06ADC();//1超温
 	if ((temp != 1) && !(statusViewNum & temp_2))
 	{
 		//正常且正常
-		underPotHot = 0;
+		//underPotHot = 0;
 		return;
 	}
 	if ((temp != 1) && (statusViewNum & temp_2))
@@ -1086,13 +1063,13 @@ void DetectUnderPotHot()
 		//if (get_06ADC() == 1)
 		//	return;
 		//statusViewNum &= ~temp_2;//置0 正常
-		underPotHot = 0;
+		//underPotHot = 0;
 		return;
 	}
 	if ((temp == 1) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		underPotHot = 0;
+		//underPotHot = 0;
 		return;
 	}
 	if ((temp == 1 )&& !(statusViewNum & temp_2))
@@ -1101,19 +1078,19 @@ void DetectUnderPotHot()
 		delay(2);
 		if (get_06ADC() != 1)
 			return;
-		underPotHot++;
-		if (underPotHot >= 3)
-		{
-			underPotHot = 0;
+		//underPotHot++;
+		//if (underPotHot >= 3)
+		//{
+		//	underPotHot = 0;
 			statusViewNum |= temp_2;//置1 不正常
-		}
+		//}
 	}
 }
 #pragma inline=forced
 void DetectIgbtError()
 {
 	uint16 temp_2 = (uint16)1 << 13;
-	temp = Test_Bit(P3, 3);//0不正常
+	uint4 temp = Test_Bit(P3, 3);//0不正常
 	if (temp&& !(statusViewNum & temp_2))
 	{
 		//正常且正常
@@ -1126,7 +1103,10 @@ void DetectIgbtError()
 		delay(2);
 		if (!Test_Bit(P3, 3))
 			return;	
-                statusViewNum &= ~temp_2;//置0 正常
+                if(nulligbtToLay>=4)
+                {
+                    statusViewNum &= ~temp_2;//置0 正常
+                }
 		return;
 	}
 	if (!temp && (statusViewNum & temp_2))
@@ -1191,7 +1171,7 @@ void DetectTransformer()
 void DetectTransformerCut()
 {
 	uint16 temp_2 = (uint16)1 << 15;
-	temp = getADCNumByNum(12);//0表示线盘断了
+	uint4 temp = getADCNumByNum(12);//0表示线盘断了
 	if (temp && !(statusViewNum & temp_2))
 	{
 		//正常且正常
@@ -1222,7 +1202,7 @@ void DetectTransformerCut()
 		if (getADCNumByNum(12))
 			return;
 		cTransformerCut++;
-		if (cTransformerCut >= 4)
+		if (cTransformerCut >= 8)
 		{
 			cTransformerCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
@@ -1233,15 +1213,11 @@ void DetectTransformerCut()
 #pragma inline=forced
 void SwitchSet()
 {
-	rangeNext = getSwitchByAnum();
+	uint4 rangeNext = getSwitchByAnum();
 	if (rangeNext != rangeNow && rangeNext != 9)
 	{
-		rangeNow = rangeNext;
-		BUZZ_ON;
-	}
-	else
-	{
-		rangeNext = rangeNow;
+          rangeNow=rangeNext;
+          BUZZ_ON;
 	}
 }
 #ifdef Screen_74HC164
@@ -1269,15 +1245,15 @@ void ViewSet(uint8 ShowNum)
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-          if(tempLay<=4)
-          {
-              tempLay++;
-          }
-          else
-          {
-                tempLay =0;
+          //if(tempLay<=4)
+          //{
+          //    tempLay++;
+          //}
+          //else
+          //{
+          //      tempLay =0;
 		set_TM1629_Down(getTemperatureByAnum(6), 1);//tempreture,1);
-          }
+          //}
 	}
 	else//时间模式
 	{
@@ -1297,7 +1273,6 @@ __interrupt void int_9488()
 		TINTPND &= ~0x01;
 		TAInterupt();
 	}
-        /*
 	else if (P3PND & 0x08)//int3(pulse input)
 	{
 		P3PND &= ~0x08;
@@ -1331,7 +1306,7 @@ __interrupt void int_9488()
 	else if (TINTPND & 0x04)//timer B(interal timer)
 	{
 		TINTPND &= ~0x04;
-	}*/
+	}
 }
 #pragma inline=forced
 //A定时器
@@ -1381,7 +1356,10 @@ void TAInterupt()
 		if (count_1s == 17)
 		{
 			count_1s = 0;
-
+                        if(turnOnLay<TURN_ALL_TIME)
+                        {
+                          turnOnLay++;
+                        }
 			Com_Bit(P2, 6);
 			//INTERUPT 更新区域
 #ifdef Screen_74HC164
@@ -1389,7 +1367,10 @@ void TAInterupt()
 #elif defined Screen_TM1629
 			interuptUpdate_TM1629();
 #endif
-
+                    if(P1CONL == 0xFD && temperatureCheckTime)//只在开通状态检查温度运转
+                    {
+                      temperatureCheckTime--;//开路延时倒计时
+                    }
 		}
 	}
 	CLEAR_WD;
@@ -1397,8 +1378,13 @@ void TAInterupt()
 #pragma inline=forced
 void P33Interupt()
 {
+  //发现处于容性负载
+  PWMPLUS();
 }
 #pragma inline=forced
 void P34Interupt()
 {
+  //关闭输出
+  P1CONL = 0xFC;
+  Set_Bit(P1,0);
 }

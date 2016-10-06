@@ -27,11 +27,11 @@ typedef unsigned long unit32;//32位无符号
 //******************************************************************
 
 
-#define Screen_TM1629 // Screen_74HC164 或者 Screen_TM1629
+#define Screen_74HC164 // Screen_74HC164 或者 Screen_TM1629
 
 #define P_30KW //P_15KW P_20KW P_25KW P_30KW
 
-//#define DEBUG //debug模式下不检查，只正常运行 DEBUG
+#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 
 #define CLEAR_WD (WDTCON = 0x0A)
 
@@ -49,6 +49,8 @@ typedef unsigned long unit32;//32位无符号
 #define TRUE 1
 #define FALSE 0
 
-#define FAN_ALL_TIME 60
+#define BUZZ_ALL_TIME 4 //蜂鸣器鸣叫时间
+#define FAN_ALL_TIME 60 //60秒风机转动
+#define TURN_ALL_TIME 2 //2S开机时间
 
 #endif /* _CONFIG_H_ */

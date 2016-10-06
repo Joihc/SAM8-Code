@@ -509,7 +509,7 @@ a check can be made to verify that the conversion was successful.
 module enters an idle state.
 6. The digital conversion result can now be read from the ADDATAH and ADDATAL register.
 */
-#pragma inline=forced
+//#pragma inline=forced
 uint16 getADCNum(uint8 IO_P)
 {
   uint16 AD_Dat =0;
@@ -570,6 +570,7 @@ uint16 getADCNumByNum(uint8 IO_P)
 
 
   for(i = 0; i < FILTER_N; i++) {
+      delay(5);
       filter_temp+= getADCNum(IO_P);
       CLEAR_WD;
   }
@@ -645,42 +646,42 @@ int16 getTemperatureByAnum(uint8 IO_P)
   7 - 2.727V          2.6 ->531.96
   8 - 3V              2.85->583.11
 */
-uint8 getSwitchByAnum()
+uint8 getSwitchByAnum()// 96 172 237 294 384 455 512 578 630
 {
-  uint16 Anum = getADCNumByNum(5);
-  if(Anum > 86 && Anum <106)
+  uint16 Anum = getADCNum(5);
+  if(Anum >90 && Anum <102)
   {
     return 0;
   }
-  else if(Anum>162 && Anum <182)
+  else if(Anum > 166 && Anum <178)
   {
     return 1;
   }
-    else if(Anum>227 && Anum <247)
+    else if(Anum > 231 && Anum <243)
   {
     return 2;
   }
-    else if(Anum>284 && Anum <304)
+    else if(Anum > 288 && Anum <300)
   {
     return 3;
   }
-    else if(Anum>384 && Anum <394)
+    else if(Anum > 378 && Anum <390)
   {
     return 4;
   }
-    else if(Anum>445&&Anum <465)
+    else if(Anum > 449 && Anum <461)
   {
     return 5;
   }
-    else if(Anum>502 && Anum <522)
+    else if(Anum > 506 && Anum <518)
   {
     return 6;
   }
-    else if(Anum>568 && Anum <588)
+    else if(Anum > 572 && Anum <584)
   {
     return 7;
   }
-    else if(Anum>620&& Anum <640)
+    else if(Anum > 624 && Anum <636)
   {
     return 8;
   }
