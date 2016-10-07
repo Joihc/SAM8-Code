@@ -64,7 +64,6 @@ uint4 vCut = 0;   //电压缺相次数
 //uint4 cTransformer = 0;//输出互感器
 uint4 cTransformerCut = 0;//线盘状态
 
-uint4 nullPotToLay=0;//无锅退出延迟
 uint4 nulligbtToLay=0;//igbterror退出延迟次数
 //uint4 temp = 0;//临时检测数据
 
@@ -171,7 +170,7 @@ void defaultValue()
 	//cTransformer = 0;//输出互感器
 	cTransformerCut = 0;//线盘状态
 
-	//temp = 0;//临时检测数据
+        nulligbtToLay=0;//igbterror退出延迟次数
 
 	nullPotCheckTime = 60;//检锅延时
 	//igbtErrorCheckTime = 20;//igbt恢复延时
@@ -199,10 +198,8 @@ int main()
 	defaultValue();
 
 	ei;
-        while(turnOnLay<TURN_ALL_TIME)
-        {
-          BUZZ_ON;
-        }
+        BUZZ_ON;
+        while(turnOnLay<TURN_ALL_TIME);
 	//BUZZ_ALL_TIME = 4;
 
 	while (1)
@@ -211,16 +208,13 @@ int main()
 		CLEAR_WD;
 		SwitchSet();
 		ViewSet(rangeNow);
+                P1CONL = 0xFC;
+                Set_Bit(P1,0);
+                AJ_ON;
 #else
                 CLEAR_WD;
 		haveViewSet = FALSE;
 		checkTimeOn = FALSE;
-                //whileUpdata++;
-               // if(whileUpdata >=5)
-                //{
-               //   whileUpdata =0;
-                //  tempreture =getTemperatureByAnum(6);//锅底温度
-               // }
 		SwitchSet();//设置档位
 		
 		DetectCoilHot();//线盘超温
@@ -310,7 +304,7 @@ int main()
                         nullPot =0;//无锅次数
 	                cTransformerCut = 0;//线盘状态
                         //重置故障
-                        statusViewNum &= ~((uint16)1 << 0);//无锅正常
+                        statusViewNum &= ~((uint16)1 << 0);//无锅 正常
                         statusViewNum &= ~((uint16)1 << 1);//线盘超温置0 正常
                         statusViewNum &= ~((uint16)1 << 3);//IGBT1超温置0 正常
                         statusViewNum &= ~((uint16)1 << 5);//IGBT2超温置0 正常
@@ -372,14 +366,9 @@ int main()
                                     AJ_OFF;
                                     delay(3);
                                     AJ_ON;//复位
-                                }
-                                    
+                                    nulligbtToLay =0;
+                                }                              
                                 fixPWM(rangeNow);
-				//}
-                                //else
-                                //{
-                                //    fixPWM(0);
-                                // }
                                 nullPot =0;//无锅次数
                                 //  igbtError=0;//IGBT驱动故障
                                 //cTransformer = 0;//输出互感器
@@ -401,9 +390,9 @@ int main()
 				{
 					cTransformerCutCheckTime=60;
 				}
-				if(cTransformerCutCheckTime<2)
+				if(cTransformerCutCheckTime<6)
 				{
-					fixPWM(rangeNow);
+				  fixPWM(rangeNow);
 				}
                                 else
                                 {
@@ -441,7 +430,7 @@ int main()
                                       nullPotLay++;
                                     }
 				}
-				if(nullPotCheckTime<12)
+				if(nullPotCheckTime<6)
                                 {
                                   fixPWM(rangeNow);
                                 }
@@ -1107,6 +1096,10 @@ void DetectIgbtError()
                 {
                     statusViewNum &= ~temp_2;//置0 正常
                 }
+                else
+                {
+                  nulligbtToLay++;
+                }
 		return;
 	}
 	if (!temp && (statusViewNum & temp_2))
@@ -1121,6 +1114,7 @@ void DetectIgbtError()
 		if (Test_Bit(P3, 3))
 			return;
                 statusViewNum |= temp_2;//置1 不正常
+                nulligbtToLay =0;//重置故障恢复时间
 	}
 
 }
@@ -1245,20 +1239,10 @@ void ViewSet(uint8 ShowNum)
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-          //if(tempLay<=4)
-          //{
-          //    tempLay++;
-          //}
-          //else
-          //{
-          //      tempLay =0;
-		set_TM1629_Down(getTemperatureByAnum(6), 1);//tempreture,1);
-          //}
+		set_TM1629_Down(getTemperatureByAnum(6), 1);
 	}
 	else//时间模式
 	{
-                //set_TM1629_Down(getTemperatureByAnum(6), 1);
-                //set_TM1629_Down(test, 1);//tempreture,1);
 		set_TM1629_Down(0, 0);
 	}
 	whileUpdate_TM1629();
@@ -1385,6 +1369,5 @@ void P33Interupt()
 void P34Interupt()
 {
   //关闭输出
-  P1CONL = 0xFC;
-  Set_Bit(P1,0);
+  fixPWM(rangeNow);
 }

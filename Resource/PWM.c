@@ -21,7 +21,7 @@ void fixPWM(uint8 index)
     uint16 inCurrent = getADCNumByNum(13);//输入互感器
     uint16 p=0;
     di;
-    if(Test_Bit(P3, 3))//如果IGBT报错
+    if(!Test_Bit(P3, 3)&& (index != 0))//如果IGBT报错
     {
       pwm = PWM_MIN;//30hz
       closePWM();
