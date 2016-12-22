@@ -66,7 +66,7 @@ uint4 turnOnLay=0;
 uint4 nullPotLay=0;//无锅显示延迟
 uint4 nulligbtLay=0;//igbtError显示延迟
 
-
+uint4 whiletimes =0;
 #ifdef  Screen_TM1629
 int16 tempurature =0;
 #endif
@@ -200,76 +200,85 @@ int main()
                 ViewSet(rangeNow);
 #else
                 CLEAR_WD;
+                whiletimes++;
+                if(whiletimes>6)
+                {
+                  whiletimes =0;
+                }
+                
+                
 		haveViewSet = FALSE;
 		checkTimeOn = FALSE;
 		SwitchSet();//设置档位
 		
-		DetectCoilHot();//线盘超温
-		DetectCoilCut();//线盘探头开路
-		DetectIGBTHot_1();//IGBT超温
-		DetectIGBTCut_1();//IGBT探头开路
-		DetectIGBTHot_2();//IGBT超温
-                CLEAR_WD;
-		DetectIGBTCut_2();//IGBT探头开路
-		DetectVLow();//低压检测
-		DetectVHight();//高压检测
-		DetectVCut();//缺相检测
-		DetectSwitchCut();//档位开关开路
-		DetectUnderPotCut();//锅底探头开路
-		DetectUnderPotHot();//锅底超温            	 
+                if(whiletimes%3==0)
+                {
+		  DetectCoilHot();//线盘超温
+		  DetectCoilCut();//线盘探头开路
+		  DetectIGBTHot_1();//IGBT超温
+		  DetectIGBTCut_1();//IGBT探头开路
+		  DetectIGBTHot_2();//IGBT超温
+                  CLEAR_WD;
+		  DetectIGBTCut_2();//IGBT探头开路
+		  //DetectVLow();//低压检测
+		  //DetectVHight();//高压检测
+		  //DetectVCut();//缺相检测
+		  DetectSwitchCut();//档位开关开路
+		  DetectUnderPotCut();//锅底探头开路
+		  DetectUnderPotHot();//锅底超温   
+                }
                 CLEAR_WD;
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {                                         
-                  DetectTransformerCut();//线盘断了或者输出互感器坏了
-		  DetectIgbtError();//IGBT驱动故障               
-                  DetectNullPot();//无锅检测                             
+                 // DetectTransformerCut();//线盘断了或者输出互感器坏了
+		 // DetectIgbtError();//IGBT驱动故障               
+                 // DetectNullPot();//无锅检测                             
                 }
 
                 CLEAR_WD;
-
-		//低压
-		if ((statusViewNum & ((uint16)1 << 7)) && !haveViewSet)
-		{
+		  //低压
+		  if ((statusViewNum & ((uint16)1 << 7)) && !haveViewSet)
+		  {
 			ViewSet(108);
 			haveViewSet = TRUE;
-		}
-		//高压
-		if ((statusViewNum & ((uint16)1 << 8)) && !haveViewSet)
-		{
+		  }
+		  //高压
+		  if ((statusViewNum & ((uint16)1 << 8)) && !haveViewSet)
+		  {
 			ViewSet(109);
 			haveViewSet = TRUE;
-		}
-		//缺相
-		if ((statusViewNum & ((uint16)1 << 9)) && !haveViewSet)
-		{
+		  }
+		  //缺相
+		  if ((statusViewNum & ((uint16)1 << 9)) && !haveViewSet)
+		  {
 			ViewSet(108);
 			haveViewSet = TRUE;
-		}
-		//档位开路
-		if ((statusViewNum & ((uint16)1 << 10)) && !haveViewSet)
-		{
+		  }
+		  //档位开路
+		  if ((statusViewNum & ((uint16)1 << 10)) && !haveViewSet)
+		  {
 			ViewSet(113);
 			haveViewSet = TRUE;
-		}
-		//线盘开路
-		if ((statusViewNum & ((uint16)1 << 2)) && !haveViewSet && !temperatureCheckTime)
-		{
+		  }
+		  //线盘开路
+		  if ((statusViewNum & ((uint16)1 << 2)) && !haveViewSet && !temperatureCheckTime)
+		  {
 			ViewSet(103);
 			haveViewSet = TRUE;
-		}
-		//IGBT1探头开路
-		if ((statusViewNum & ((uint16)1 << 4)) && !haveViewSet && !temperatureCheckTime)
-		{
+		  }
+		  //IGBT1探头开路
+		  if ((statusViewNum & ((uint16)1 << 4)) && !haveViewSet && !temperatureCheckTime)
+		  {
 			ViewSet(105);
 			haveViewSet = TRUE;
-		}
-		//IGBT2探头开路
-		if ((statusViewNum & ((uint16)1 << 6)) && !haveViewSet && !temperatureCheckTime)
-		{
+		  }
+		  //IGBT2探头开路
+		  if ((statusViewNum & ((uint16)1 << 6)) && !haveViewSet && !temperatureCheckTime)
+		  {
 			ViewSet(105);
 			haveViewSet = TRUE;
-		}
+		  }
 		//锅底探头开路
 		if ((statusViewNum & ((uint16)1 << 11)) && !haveViewSet && !temperatureCheckTime)
 		{
@@ -1229,11 +1238,11 @@ void SwitchSet()
 	{
           if(rangeNext>rangeNow)
           {
-            rangeNow++;
+            ++rangeNow;
           }
           else 
           {
-            rangeNow--;
+            --rangeNow;
           }
           //rangeNow=rangeNext;
           BUZZ_ON;

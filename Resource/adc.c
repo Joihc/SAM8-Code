@@ -646,42 +646,42 @@ int16 getTemperatureByAnum(uint8 IO_P)
   7 - 2.727V          2.6 ->531.96
   8 - 3V              2.85->583.11
 */
-uint8 getSwitchByAnum()// 96 172 237 294 384 455 512 578 630
+uint4 getSwitchByAnum()// 96 172 237 294 384 455 512 578 630
 {
   uint16 Anum = getADCNum(5);
-  if(Anum >90 && Anum <102)
+  if(Anum >(96-SWITCH_AREA) && Anum <(96+SWITCH_AREA))
   {
     return 0;
   }
-  else if(Anum > 166 && Anum <178)
+  else if(Anum > (172-SWITCH_AREA) && Anum <(172+SWITCH_AREA))
   {
     return 1;
   }
-    else if(Anum > 231 && Anum <243)
+    else if(Anum > (237-SWITCH_AREA) && Anum <(237+SWITCH_AREA))
   {
     return 2;
   }
-    else if(Anum > 288 && Anum <300)
+    else if(Anum > (294-SWITCH_AREA) && Anum <(294+SWITCH_AREA))
   {
     return 3;
   }
-    else if(Anum > 378 && Anum <390)
+    else if(Anum > (384-SWITCH_AREA) && Anum <(384+SWITCH_AREA))
   {
     return 4;
   }
-    else if(Anum > 449 && Anum <461)
+    else if(Anum > (455-SWITCH_AREA) && Anum <(455+SWITCH_AREA))
   {
     return 5;
   }
-    else if(Anum > 506 && Anum <518)
+    else if(Anum > (512-SWITCH_AREA) && Anum <(512+SWITCH_AREA))
   {
     return 6;
   }
-    else if(Anum > 572 && Anum <584)
+    else if(Anum > (578-SWITCH_AREA) && Anum <(578+SWITCH_AREA))
   {
     return 7;
   }
-    else if(Anum > 624 && Anum <636)
+    else if(Anum > (630-SWITCH_AREA) && Anum <(630+SWITCH_AREA))
   {
     return 8;
   }

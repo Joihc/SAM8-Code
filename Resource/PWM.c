@@ -3,6 +3,7 @@
 #include "PWM.h"
 
 uint8 pwm =PWM_MIN;//
+uint4 pwmMinus = 0;//1表示需要补偿
 #pragma inline=forced
 void closePWM()
 {
@@ -60,6 +61,14 @@ void fixPWM(uint8 index)
     //}
     //else
     //{
+    if(pwmMinus == 1)
+    {
+      --pwm;
+      pwmMinus =0;
+      P3INT = 0x08;//开启中断
+    }
+    else
+    {
       if(outCurrent<(p-2))
       {
         ++pwm;
@@ -68,6 +77,7 @@ void fixPWM(uint8 index)
       {
         --pwm;
       }
+    }
     //}
     pwm =Clamp(pwm,PWM_MIN,PWM_MAX);
 
@@ -81,8 +91,8 @@ void PWMPLUS()
 {
   if(P1CONL == 0xFD)//在开启状态
   {
-    --pwm;
-    pwm =Clamp(pwm,PWM_MIN,PWM_MAX);
+    pwmMinus =1;
+    P3INT = 0x00;//关闭中断
   }
 }
 void testPotPwm()
