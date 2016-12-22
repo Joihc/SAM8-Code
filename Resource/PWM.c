@@ -6,13 +6,14 @@ uint8 pwm =PWM_MIN;//
 #pragma inline=forced
 void closePWM()
 {
+  AJ_OFF;
   P1CONL = 0xFC;
-  Set_Bit(P1,0);
 }
 #pragma inline=forced
 void openPWM()
 {
   P1CONL = 0xFD;
+  AJ_ON;
 }
 
 void fixPWM(uint8 index)
@@ -21,17 +22,10 @@ void fixPWM(uint8 index)
     uint16 inCurrent = getADCNumByNum(13);//输入互感器
     uint16 p=0;
     di;
-    if(!Test_Bit(P3, 3)&& (index != 0))//如果IGBT报错
-    {
-      pwm = PWM_MIN;//30hz
-      closePWM();
-      return;
-    }
     switch(index)
     {
       case 0:
         pwm = PWM_MIN;//30hz
-        AJ_OFF;
         closePWM();
         ei;
       return;
@@ -60,12 +54,12 @@ void fixPWM(uint8 index)
             p = PWM8;
       break;
     }
-    if((inCurrent < RETURN_PWM) && (pwm > PWM_RETURN))
-    {
-      --pwm;
-    }
-    else
-    {
+    //if((inCurrent < RETURN_PWM) && (pwm > PWM_RETURN))
+    //{
+    //  --pwm;
+    //}
+    //else
+    //{
       if(outCurrent<(p-2))
       {
         ++pwm;
@@ -74,13 +68,12 @@ void fixPWM(uint8 index)
       {
         --pwm;
       }
-    }
+    //}
     pwm =Clamp(pwm,PWM_MIN,PWM_MAX);
 
     TBDATAH = pwm;//pwm;//pwm/2 -1;
-    TBDATAL =pwm;//pwm;//pwm/2 -1;
+    TBDATAL = pwm;//pwm;//pwm/2 -1;
     openPWM();
-    AJ_ON;
     ei;
 }
 
@@ -88,10 +81,8 @@ void PWMPLUS()
 {
   if(P1CONL == 0xFD)//在开启状态
   {
-    ++pwm;
+    --pwm;
     pwm =Clamp(pwm,PWM_MIN,PWM_MAX);
-    TBDATAH = pwm;//pwm;//pwm/2 -1;
-    TBDATAL =pwm;//pwm;//pwm/2 -1;
   }
 }
 void testPotPwm()
@@ -105,10 +96,6 @@ void testPotPwm()
     ei;
 }
 
-uint4 getPWMCanTakeNullPot()
-{
-  return pwm>63?1:0;//设置开始检锅的频率，如果未达到则不理
-}
 void testPWM(uint8 index)
 {
   di;

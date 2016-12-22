@@ -34,7 +34,7 @@ typedef unsigned long unit32;//32位无符号
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 
 #define CLEAR_WD (WDTCON = 0x0A)
-
+#define DELAY_TIME 100
 #define BUZZ_ON  (Set_Bit(P1,5))
 #define BUZZ_OFF (Clr_Bit(P1,5))
 #define BUZZ_Test  (Test_Bit(P1,5))

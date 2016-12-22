@@ -570,8 +570,8 @@ uint16 getADCNumByNum(uint8 IO_P)
 
 
   for(i = 0; i < FILTER_N; i++) {
-      delay(5);
       filter_temp+= getADCNum(IO_P);
+      delay(2);
       CLEAR_WD;
   }
   /*

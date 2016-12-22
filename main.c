@@ -71,14 +71,22 @@ uint4 checkTimeOn = FALSE;//无延时检测
 uint8 nullPotCheckTime = 60;//检锅延时
 uint8 igbtErrorCheckTime = 60;//igbt驱动恢复延时
 //uint8 cTransformerChenckTime = 20;//输出互感器装反延时
-uint8 cTransformerCutCheckTime = 60;//输出互感器或线盘检测
+//uint8 cTransformerCutCheckTime = 60;//输出互感器或线盘检测
 uint8 temperatureCheckTime = 40;//温度检测延时
+
+uint4 checkTransformerCut =0;//线盘时继续线盘
+uint4 checkNullPot =0;//无锅时继续无锅
+
 
 uint4 turnOnLay=0;
 uint4 nullPotLay=0;//无锅显示延迟
+//uint4 nullTransformerCut =0;//互感器
 uint4 nulligbtLay=0;//igbtError显示延迟
 
-//uint4 tempLay=0;//温度显示延迟
+
+#ifdef  Screen_TM1629
+int16 tempurature =0;
+#endif
 
 #pragma inline=forced
 								   //--initiation
@@ -87,12 +95,12 @@ void sysInit()
 
 	WDTCON = 0xAA;
 	BTCON = 0x03;//128 清零
-	CLKCON = 0x18;//00/16 01/8 10/2 11/1   原08
+	CLKCON = 0x10;//00/16 08/8 10/2 18/1   原08
 	SYM = 0x00;
 
 	OSCCON = 0x04;
 
-	ADCON = 0xF4;
+	ADCON = 0xF0;
 	TADATA = 234;
 	TACON = 0x0B;
 	//TACON = 0x00;
@@ -126,10 +134,10 @@ void ioInit()
 #endif
 
 				  /*  P3 I/0口*/
-	P3CONH = 0x05;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/上升) 01(P3.3/下降沿)
+	P3CONH = 0x05;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/下降) 01(P3.3/下降沿)
 	P3CONL = 0x00;//000(P3.2) 000(P3.1) 00(P3.0)
 
-	P3INT = 0x0A;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/上升)10 00(P3.3/下降沿)10
+	P3INT = 0x08;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/下降)10 00(P3.3/下降沿)10
 	P3PND = 0x00;//0000 1(P3.6/SCLK) 0(P3.5/SDAT) 0(P3.4/下降沿) 0(P3.3/下降沿) -中断挂起 置0重置
 				 /*  P4 I/0口 全部挂起*/
 }
@@ -175,12 +183,13 @@ void defaultValue()
 	nullPotCheckTime = 60;//检锅延时
 	//igbtErrorCheckTime = 20;//igbt恢复延时
 	//cTransformerChenckTime = 20;//输出互感器装反延时
-	cTransformerCutCheckTime = 20;//输出互感器或线盘检测
-	temperatureCheckTime = 20;//温度检测延时20s
+	//cTransformerCutCheckTime = 20;//输出互感器或线盘检测
+	temperatureCheckTime = 40;//温度检测延时40s
         
         turnOnLay =0;
         nullPotLay =0;
         nulligbtLay =0;
+        
 }
 int main()
 {
@@ -199,18 +208,27 @@ int main()
 
 	ei;
         BUZZ_ON;
+        CLEAR_WD;
         while(turnOnLay<TURN_ALL_TIME);
+        
+        rangeNow = getSwitchByAnum();
+        
+#ifdef  Screen_TM1629
+        tempurature = getTemperatureByAnum(6);
+#endif
 	//BUZZ_ALL_TIME = 4;
 
 	while (1)
 	{
 #ifdef DEBUG
 		CLEAR_WD;
-		SwitchSet();
-		ViewSet(rangeNow);
-                P1CONL = 0xFC;
-                Set_Bit(P1,0);
-                AJ_ON;
+		//SwitchSet();
+		//ViewSet(rangeNow);
+                //P1CONL = 0xFC;
+                //Set_Bit(P1,0);
+                //AJ_ON;
+                SwitchSet();
+                ViewSet(rangeNow);
 #else
                 CLEAR_WD;
 		haveViewSet = FALSE;
@@ -224,19 +242,21 @@ int main()
 		DetectIGBTHot_2();//IGBT超温
                 CLEAR_WD;
 		DetectIGBTCut_2();//IGBT探头开路
-		DetectVLow();//低压检测
-		DetectVHight();//高压检测
-		DetectVCut();//缺相检测
+		//DetectVLow();//低压检测
+		//DetectVHight();//高压检测
+		//DetectVCut();//缺相检测
 		DetectSwitchCut();//档位开关开路
 		DetectUnderPotCut();//锅底探头开路
-		DetectUnderPotHot();//锅底超温
+		DetectUnderPotHot();//锅底超温            	 
                 CLEAR_WD;
+
                 if(P1CONL == 0xFD)//只在开通状态下检查
-                {
-		  DetectIgbtError();//IGBT驱动故障
-		  DetectTransformerCut();//线盘断了或者输出互感器坏了
-                  DetectNullPot();//无锅检测
+                {                                         
+                  //DetectTransformerCut();//线盘断了或者输出互感器坏了
+		  //DetectIgbtError();//IGBT驱动故障               
+                  //DetectNullPot();//无锅检测                             
                 }
+
                 CLEAR_WD;
 
 		//低压
@@ -338,7 +358,13 @@ int main()
 				ViewSet(106);
 				haveViewSet = TRUE;
 			}
-                        
+                        //线盘不通或者输出互感器损坏
+                        if((statusViewNum & ((uint16)1 << 15)) && !haveViewSet)
+                        {                        
+                            ViewSet(111);
+                            haveViewSet = TRUE;
+                            nullPot =0;//无锅次数
+                        }
 			//IGBT驱动故障
 			if ((statusViewNum & ((uint16)1 << 13)) && !haveViewSet && !checkTimeOn)
 			{
@@ -352,51 +378,68 @@ int main()
                                 }
 				haveViewSet = TRUE;
 				checkTimeOn = TRUE;
-                                igbtErrorCheckTime--;
-                                if (igbtErrorCheckTime==0)
+                                if (igbtErrorCheckTime >=DELAY_TIME)
 				{
-				    igbtErrorCheckTime =60;
+				    igbtErrorCheckTime =0;
                                     if(nulligbtLay <2)
                                     {
                                       nulligbtLay++;
                                     }
 				}
-				if(igbtErrorCheckTime ==50)
+				if(Test_Bit(P3, 3))
 				{
-                                    AJ_OFF;
-                                    delay(3);
-                                    AJ_ON;//复位
+                                  if(igbtErrorCheckTime == 0)//时间重置且在复位后的状态
+                                  {
+                                    fixPWM(rangeNow);
+                                    nulligbtToLay =1;
+                                    igbtErrorCheckTime++;
+                                  }
+                                }
+                                else
+                                {
+                                    fixPWM(0);
                                     nulligbtToLay =0;
-                                }                              
-                                fixPWM(rangeNow);
+                                }
+                                
                                 nullPot =0;//无锅次数
-                                //  igbtError=0;//IGBT驱动故障
+                                //igbtError=0;//IGBT驱动故障
                                 //cTransformer = 0;//输出互感器
 	                        cTransformerCut = 0;//线盘状态
 			}
-			else
-			{
-                          nulligbtLay =0;
-			  igbtErrorCheckTime = 60;
-			}
+                        /*
 			//线盘不通或者输出互感器损坏
 			if ((statusViewNum & ((uint16)1 << 15)) && !haveViewSet && !checkTimeOn)
 			{
-				ViewSet(111);
+                          if(nullTransformerCut<3)
+                          {
+                            ViewSet(rangeNow);
+                          }
+                          else
+                          {
+			    ViewSet(111);
+                          }
 				haveViewSet = TRUE;
 				checkTimeOn = TRUE;
-                                cTransformerCutCheckTime--;
-				if (cTransformerCutCheckTime==0)
+				if (cTransformerCutCheckTime>=DELAY_TIME)
 				{
-					cTransformerCutCheckTime=60;
+			            cTransformerCutCheckTime=0;
+                                    checkTransformerCut =0;
+                                    if(nullTransformerCut<3)
+                                    {
+                                      nullTransformerCut++;
+                                    }
 				}
-				if(cTransformerCutCheckTime<6)
-				{
-				  fixPWM(rangeNow);
-				}
+                                if(checkTransformerCut >4)
+                                {
+                                    fixPWM(0);
+                                }
                                 else
                                 {
-                                  fixPWM(0);
+                                    fixPWM(rangeNow);
+                                }
+                                if(checkTransformerCut<=4)
+                                {
+                                    checkTransformerCut++;
                                 }
                                 nullPot =0;//无锅次数
                                 //  igbtError=0;//IGBT驱动故障
@@ -405,48 +448,47 @@ int main()
 			}
 			else
 			{
-				cTransformerCutCheckTime = 60;
-			}
+				cTransformerCutCheckTime = DELAY_TIME+1;
+			}*/
                         //无锅
 			if ((statusViewNum & ((uint16)1 << 0)) && !haveViewSet && !checkTimeOn)
 			{
-                          if(nullPotLay <2)
-                          {
-                            ViewSet(rangeNow);
-                          }
-                          else
-                          {
-                            ViewSet(101);
-                          }
+                            if(nullPotLay <2)
+                            {
+                              ViewSet(rangeNow);
+                            }
+                            else
+                            {
+                              ViewSet(101);
+                            }
 				
 				haveViewSet = TRUE;
 				checkTimeOn = TRUE;
-                                nullPotCheckTime--;
-				if (nullPotCheckTime == 0)
+				if (nullPotCheckTime >=DELAY_TIME)
 				{
-				    nullPotCheckTime = 60;
+				    nullPotCheckTime = 0;
+                                    checkNullPot =0;
                                     if(nullPotLay<2)
                                     {
                                       nullPotLay++;
                                     }
 				}
-				if(nullPotCheckTime<6)
+                                if(checkNullPot>4)
                                 {
-                                  fixPWM(rangeNow);
+                                    fixPWM(0);                               
                                 }
                                 else
                                 {
-                                  fixPWM(0);
+                                    fixPWM(rangeNow);
+                                }
+                                if(checkNullPot<=4)
+                                {
+                                  checkNullPot++;
                                 }
                                 //nullPot =0;//无锅次数
                                 //  igbtError=0;//IGBT驱动故障
                                 //cTransformer = 0;//输出互感器
 	                        cTransformerCut = 0;//线盘状态
-			}
-			else
-			{
-				nullPotCheckTime = 60;
-                                nullPotLay =0;
 			}
 			if (!haveViewSet)
 			{
@@ -527,6 +569,9 @@ void DetectNullPot()
 		if (nullPot >= 10)
 		{
 			nullPot = 0;
+                        nullPotCheckTime =0;
+                        nullPotLay =0;
+                        checkNullPot =0;
 			statusViewNum |= temp_2;//置1 无锅状态
 		}
 	}
@@ -1096,7 +1141,7 @@ void DetectIgbtError()
                 {
                     statusViewNum &= ~temp_2;//置0 正常
                 }
-                else
+                else if(nulligbtToLay>=1)
                 {
                   nulligbtToLay++;
                 }
@@ -1114,6 +1159,7 @@ void DetectIgbtError()
 		if (Test_Bit(P3, 3))
 			return;
                 statusViewNum |= temp_2;//置1 不正常
+                nulligbtLay =0;
                 nulligbtToLay =0;//重置故障恢复时间
 	}
 
@@ -1182,11 +1228,11 @@ void DetectTransformerCut()
 		cTransformerCut = 0;
 		return;
 	}
-	if (!temp && (statusViewNum & temp_2))
+	if (!temp&& (statusViewNum & temp_2))
 	{
 		//不正常且不正常
-		delay(2);
-                cTransformerCut = 0;
+		//delay(2);
+                //cTransformerCut = 0;
 		return;
 	}
 	if (!temp && !(statusViewNum & temp_2))
@@ -1199,6 +1245,8 @@ void DetectTransformerCut()
 		if (cTransformerCut >= 8)
 		{
 			cTransformerCut = 0;
+                        //checkTransformerCut =0;
+                        //nullTransformerCut =0;
 			statusViewNum |= temp_2;//置1 不正常
 		}
 	}
@@ -1210,7 +1258,15 @@ void SwitchSet()
 	uint4 rangeNext = getSwitchByAnum();
 	if (rangeNext != rangeNow && rangeNext != 9)
 	{
-          rangeNow=rangeNext;
+          if(rangeNext>rangeNow)
+          {
+            rangeNow++;
+          }
+          else 
+          {
+            rangeNow--;
+          }
+          //rangeNow=rangeNext;
           BUZZ_ON;
 	}
 }
@@ -1223,6 +1279,7 @@ void ViewSet(uint8 ShowNum)
 #elif defined Screen_TM1629
 void ViewSet(uint8 ShowNum)
 {
+        uint16 tempnum =0;
         if(ShowNum>100)
         {
           set_TM1629_Up(ShowNum);
@@ -1232,19 +1289,32 @@ void ViewSet(uint8 ShowNum)
            set_TM1629_Up(POWER_RATE[ShowNum]);
         }
 	set_TM1629_LeftNum(rangeNow);
-	set_TM1629_Leftstring(getPWMRate());
+#ifdef DEBUG
+      set_TM1629_Leftstring(rangeNow); 
+      set_TM1629_Down(0, 0);
+#else
+      set_TM1629_Leftstring(getPWMRate());
 	if (ShowNum<100 && ShowNum>0)//温度模式
 	{
-          	
+                tempnum =getTemperatureByAnum(6);
+          	if(tempurature+2<tempnum)
+                {
+                  tempurature++;
+                }
+                else if(tempurature-2>tempnum)
+                {
+                  tempurature--;
+                }
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-		set_TM1629_Down(getTemperatureByAnum(6), 1);
+		set_TM1629_Down(tempurature, 1);
 	}
 	else//时间模式
 	{
 		set_TM1629_Down(0, 0);
 	}
+#endif
 	whileUpdate_TM1629();
 }
 #endif
@@ -1263,13 +1333,13 @@ __interrupt void int_9488()
 	}
 	else if (P3PND & 0x01)//int0(active pulse input)
 	{
-		P3PND &= ~0x01;
 		P33Interupt();
+                P3PND &= ~0x01;
 	}
 	else if (P3PND & 0x02)//int1(reactive pulse input)
-	{
-		P3PND &= ~0x02;
+	{	
 		P34Interupt();
+                P3PND &= ~0x02;
 	}
 	else if (P3PND & 0x04)//int2(powercut input)
 	{
@@ -1298,7 +1368,19 @@ void TAInterupt()
 {
 	CLEAR_WD;
 	count_60ms++;
-
+        if(nullPotCheckTime <DELAY_TIME)
+        {
+          nullPotCheckTime++;
+        }
+        if(igbtErrorCheckTime < DELAY_TIME)
+        {
+          igbtErrorCheckTime++;
+        }
+        //if(cTransformerCutCheckTime<DELAY_TIME)
+        //{
+        //  cTransformerCutCheckTime++;
+        //}
+        
 	if (BUZZ_Test)
 	{
 		buzzTime++;
@@ -1362,12 +1444,13 @@ void TAInterupt()
 #pragma inline=forced
 void P33Interupt()
 {
-  //发现处于容性负载
-  PWMPLUS();
+   //关闭输出
+  //fixPWM(0);
 }
 #pragma inline=forced
 void P34Interupt()
 {
-  //关闭输出
-  fixPWM(rangeNow);
+  //相位补偿
+  PWMPLUS();
+  //CLEAR_WD;
 }
