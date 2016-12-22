@@ -36,10 +36,8 @@ uint8 count_60ms = 0;
 uint8 count_1s = 0;
 uint8 count_2s = 0;
 
-//uint8 BUZZ_ALL_TIME = 0;//蜂鸣器鸣叫总时长
 uint8 buzzTime = 0;		//蜂鸣器鸣叫时间
 
-//uint8 FAN_ALL_TIME = 0;	//风扇旋转总时长
 uint8 fanTime = FAN_ALL_TIME;		//风扇旋转时间 0表示不计时状态 >0表示计时状态
 
 //uint4 rangeNext = 0;		//下次档位
@@ -48,30 +46,16 @@ uint4 rangeNow = 0;			//当前档位
 uint16 statusViewNum = 0;		//每位检测到状态表示左到右,1表示故障0表示正常  0无锅/1线盘超温/2线盘开路/3IGBT1超温/4IGBT1开路/5IGBT2超温/6IGBT2开路
 								//7电压低/8电压高/9缺相/10档位开关开路/11锅底开路/12锅底超温/13IGBT驱动故障/14输出互感器反/15线盘不通
 uint4 nullPot = 0;//检测无锅次数
-//uint4 coilHot = 0;//线盘超温次数
-//uint4 coilCut = 0;//线盘开路次数
-//uint4 igbtHot_1 = 0;//IGBT1超温次数
-//uint4 igbtCut_1 = 0;//IGBT1开路次数
-//uint4 igbtHot_2 = 0;//IGBT2超温次数
-//uint4 igbtCut_2 = 0;//IGBT2开路次数
 uint4 vLow = 0;   //电压低次数
 uint4 vHight = 0; //电压高次数
 uint4 vCut = 0;   //电压缺相次数
-//uint4 switchCut = 0;//档位开关开路次数
-//uint4 underPotCut = 0;//锅底探头开路
-//uint4 underPotHot = 0;//锅底探头超温
-//uint4 igbtError = 0;//IGBT驱动故障
-//uint4 cTransformer = 0;//输出互感器
 uint4 cTransformerCut = 0;//线盘状态
 
 uint4 nulligbtToLay=0;//igbterror退出延迟次数
-//uint4 temp = 0;//临时检测数据
 
 uint4 checkTimeOn = FALSE;//无延时检测
 uint8 nullPotCheckTime = 60;//检锅延时
 uint8 igbtErrorCheckTime = 60;//igbt驱动恢复延时
-//uint8 cTransformerChenckTime = 20;//输出互感器装反延时
-//uint8 cTransformerCutCheckTime = 60;//输出互感器或线盘检测
 uint8 temperatureCheckTime = 40;//温度检测延时
 
 uint4 checkTransformerCut =0;//线盘时继续线盘
@@ -80,7 +64,6 @@ uint4 checkNullPot =0;//无锅时继续无锅
 
 uint4 turnOnLay=0;
 uint4 nullPotLay=0;//无锅显示延迟
-//uint4 nullTransformerCut =0;//互感器
 uint4 nulligbtLay=0;//igbtError显示延迟
 
 
@@ -162,28 +145,14 @@ void defaultValue()
 	statusViewNum = 0;		//每位检测到状态表示左到右,1表示故障0表示正常  0无锅/1线盘超温/2线盘开路/3IGBT1超温/4IGBT1开路/5IGBT2超温/6IGBT2开路
 							//7电压低/8电压高/9缺相/10档位开关开路/11锅底开路/12锅底超温/13IGBT驱动故障/14输出互感器反/15线盘不通
 	nullPot = 0;//检测无锅次数
-	//coilHot = 0;//线盘超温次数
-	//coilCut = 0;//线盘开路次数
-	//igbtHot_1 = 0;//IGBT1超温次数
-	//igbtCut_1 = 0;//IGBT1开路次数
-	//igbtHot_2 = 0;//IGBT2超温次数
-	//igbtCut_2 = 0;//IGBT2开路次数
 	vLow = 0;   //电压低次数
 	vHight = 0; //电压高次数
 	vCut = 0;   //电压缺相次数
-	//switchCut = 0;//档位开关开路次数
-	//underPotCut = 0;//锅底探头开路
-	//underPotHot = 0;//锅底探头超温
-	//igbtError = 0;//IGBT驱动故障
-	//cTransformer = 0;//输出互感器
 	cTransformerCut = 0;//线盘状态
 
         nulligbtToLay=0;//igbterror退出延迟次数
 
 	nullPotCheckTime = 60;//检锅延时
-	//igbtErrorCheckTime = 20;//igbt恢复延时
-	//cTransformerChenckTime = 20;//输出互感器装反延时
-	//cTransformerCutCheckTime = 20;//输出互感器或线盘检测
 	temperatureCheckTime = 40;//温度检测延时40s
         
         turnOnLay =0;
@@ -242,9 +211,9 @@ int main()
 		DetectIGBTHot_2();//IGBT超温
                 CLEAR_WD;
 		DetectIGBTCut_2();//IGBT探头开路
-		//DetectVLow();//低压检测
-		//DetectVHight();//高压检测
-		//DetectVCut();//缺相检测
+		DetectVLow();//低压检测
+		DetectVHight();//高压检测
+		DetectVCut();//缺相检测
 		DetectSwitchCut();//档位开关开路
 		DetectUnderPotCut();//锅底探头开路
 		DetectUnderPotHot();//锅底超温            	 
@@ -252,9 +221,9 @@ int main()
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {                                         
-                  //DetectTransformerCut();//线盘断了或者输出互感器坏了
-		  //DetectIgbtError();//IGBT驱动故障               
-                  //DetectNullPot();//无锅检测                             
+                  DetectTransformerCut();//线盘断了或者输出互感器坏了
+		  DetectIgbtError();//IGBT驱动故障               
+                  DetectNullPot();//无锅检测                             
                 }
 
                 CLEAR_WD;
