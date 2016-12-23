@@ -220,9 +220,9 @@ int main()
 		  DetectIGBTHot_2();//IGBT超温
                   CLEAR_WD;
 		  DetectIGBTCut_2();//IGBT探头开路
-		  //DetectVLow();//低压检测
-		  //DetectVHight();//高压检测
-		  //DetectVCut();//缺相检测
+		  DetectVLow();//低压检测
+		  DetectVHight();//高压检测
+		  DetectVCut();//缺相检测
 		  DetectSwitchCut();//档位开关开路
 		  DetectUnderPotCut();//锅底探头开路
 		  DetectUnderPotHot();//锅底超温   
@@ -231,9 +231,9 @@ int main()
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {                                         
-                 // DetectTransformerCut();//线盘断了或者输出互感器坏了
-		 // DetectIgbtError();//IGBT驱动故障               
-                 // DetectNullPot();//无锅检测                             
+                  DetectTransformerCut();//线盘断了或者输出互感器坏了
+		  DetectIgbtError();//IGBT驱动故障               
+                  DetectNullPot();//无锅检测                             
                 }
 
                 CLEAR_WD;
