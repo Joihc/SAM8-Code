@@ -69,13 +69,20 @@ void fixPWM(uint8 index)
     }
     else
     {
-      if(outCurrent<(p-2))
-      {
-        ++pwm;
-      }
-      else if(outCurrent>(p+2))
+      if(outCurrent*4/inCurrent>=2)
       {
         --pwm;
+      }
+      else
+      {
+        if(outCurrent<(p-2))
+        {
+          ++pwm;
+        }
+        else if(outCurrent>(p+2))
+        {
+          --pwm;
+        }
       }
     }
     //}

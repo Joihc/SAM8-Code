@@ -358,33 +358,45 @@ __code const short  rtTable4[] =
 };
 
 //uint16 buf[FILTER_N] = {600,600,600};
-
+uint16 vo=0;
 /// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
 {
   uint16 three = getADCNumByNum(3);// 565 679  310-456V  942     250-500-760
-  if(three < 250-AREA)
+  if(vo ==0)
+  {
+    vo = three;
+  }
+  if(vo>three+6)
+  {
+    vo--;
+  }
+  else if(vo<three-6)
+  {
+    vo++;
+  }
+  if(vo < 250-AREA)              //450 716  310-450           269-450-716
   {
     return 1;
-  }
-  else if(three >250+AREA && three <500-AREA)
+  } 
+  else if(vo >250+AREA && vo <458-AREA)
   {
     return 2;
   }
-  else if(three >500+AREA && three <760-AREA)
+  else if(vo >458+AREA && vo <732-AREA)
   {
     return 0;
   }
-  else if(three >760+AREA)
+  else if(vo >732+AREA)
   {
     return 3;
   }
   
-  if(three>=250-AREA && three <= 250+AREA)
+  if(vo>=250-AREA && vo <= 250+AREA)
   {
     return last_index==1?1:2;
   }
-  else if(three >=500-AREA && three <=500+AREA)
+  else if(vo >=458-AREA && vo <=458+AREA)
   {
     if(last_index ==2 || last_index ==1)
     {
@@ -395,7 +407,7 @@ uint4 get_03ADC(uint4 last_index)
       return 0;
     }
   }
-  else if(three >=760-AREA && three <= 760+AREA)
+  else if(vo >=732-AREA && vo <= 732+AREA)
   {
     return last_index == 3 ? 3:0;
   }
@@ -410,6 +422,10 @@ uint4 get_03ADC(uint4 last_index)
   //  return 3;
   //}
   //return 0;
+}
+uint16 getVo()
+{
+  return vo;
 }
 ///* P0.5/ADC6/档位 10K 5V*/  开路 >4.5V 1   0正常
 uint4 get_05ADC()

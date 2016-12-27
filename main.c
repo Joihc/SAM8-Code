@@ -101,7 +101,12 @@ void sysInit()
 void ioInit()
 {
 	/* PO I/O口 不用IO口均设置为输入上拉 默认*/
-	P0CONH = 0x55;//01(ADC4) 01(ADC5) 01(ADC6) 01(ADC7)
+#ifdef INDUSTRY
+        P0CONH = 0x45;//01(ADC4) 01(温控，高电平关，低电平开00) 01(ADC6) 01(ADC7)
+#elif
+        P0CONH = 0x55;//01(ADC4) 01(ADC5) 01(ADC6) 01(ADC7)
+#endif
+	
 	P0CONL = 0xC3;//11(ADC8) 00(P0.2/reset) 00(P0.1/XTOUT) 11(P0.0/FAN)
 	P0PUR = 0x07;//0 0 0 0 0   0 1 1 1
 				 /* P1 I/O口 */
@@ -189,7 +194,7 @@ int main()
 
 	while (1)
 	{
-#ifdef DEBUG
+/*#ifdef DEBUG
 		CLEAR_WD;
 		//SwitchSet();
 		//ViewSet(rangeNow);
@@ -198,7 +203,7 @@ int main()
                 //AJ_ON;
                 SwitchSet();
                 ViewSet(rangeNow);
-#else
+#else*/
                 CLEAR_WD;
                 whiletimes++;
                 if(whiletimes>6)
@@ -211,7 +216,7 @@ int main()
 		checkTimeOn = FALSE;
 		SwitchSet();//设置档位
 		
-                if(whiletimes%3==0)
+                if(whiletimes==6)
                 {
 		  DetectCoilHot();//线盘超温
 		  DetectCoilCut();//线盘探头开路
@@ -224,16 +229,18 @@ int main()
 		  DetectVHight();//高压检测
 		  DetectVCut();//缺相检测
 		  DetectSwitchCut();//档位开关开路
+#ifndef INDUSTRY
 		  DetectUnderPotCut();//锅底探头开路
-		  DetectUnderPotHot();//锅底超温   
+		  DetectUnderPotHot();//锅底超温
+#endif
                 }
                 CLEAR_WD;
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {                                         
                   DetectTransformerCut();//线盘断了或者输出互感器坏了
-		  DetectIgbtError();//IGBT驱动故障               
-                  DetectNullPot();//无锅检测                             
+		  DetectIgbtError();//IGBT驱动故障
+                  DetectNullPot();//无锅检测 
                 }
 
                 CLEAR_WD;
@@ -486,9 +493,25 @@ int main()
 				}
 				else
 				{
+#ifdef INDUSTRY                                     
+                                        if(Test_Bit(P0, 6))
+                                        {
+                                            fixPWM(0);//关闭输出
+                                            nullPot =0;//无锅次数
+                                            cTransformerCut = 0;//线盘状态
+                                        }
+                                        else
+                                        {
+                                            fixPWM(rangeNow);//开启输出 
+                                        }
+					ViewSet(rangeNow);//显示档位
+					fanTime = 0;//开启风机  
+
+#elif
 					fixPWM(rangeNow);//开启输出
 					ViewSet(rangeNow);//显示档位
-					fanTime = 0;//开启风机
+					fanTime = 0;//开启风机   
+#endif
 				}
 			}
 			else
@@ -507,7 +530,7 @@ int main()
 				}
 			}
 		}
-#endif
+//#endif
 	}
 }
 #pragma inline=forced
@@ -1236,15 +1259,7 @@ void SwitchSet()
 	uint4 rangeNext = getSwitchByAnum();
 	if (rangeNext != rangeNow && rangeNext != 9)
 	{
-          if(rangeNext>rangeNow)
-          {
-            ++rangeNow;
-          }
-          else 
-          {
-            --rangeNow;
-          }
-          //rangeNow=rangeNext;
+          rangeNow=rangeNext;
           BUZZ_ON;
 	}
 }
@@ -1286,11 +1301,22 @@ void ViewSet(uint8 ShowNum)
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-		set_TM1629_Down(tempurature, 1);
+		//set_TM1629_Down(tempurature, 1);
+                //tempnum =getADCNumByNum(13);
+                //if(tempnum ==0)
+                //{
+                //  set_TM1629_Down(0, 1);
+                //}
+                //else
+                //{
+                //  set_TM1629_Down(getADCNumByNum(12)*4/tempnum, 1);
+                //}
+                
 	}
 	else//时间模式
 	{
 		set_TM1629_Down(0, 0);
+                //set_TM1629_Down(getVo(), 1);
 	}
 #endif
 	whileUpdate_TM1629();
