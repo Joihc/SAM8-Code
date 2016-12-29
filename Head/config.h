@@ -33,8 +33,6 @@ typedef unsigned long unit32;//32位无符号
 
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 
-#define INDUSTRY //工业 锅底该温控
-
 #define CLEAR_WD (WDTCON = 0x0A)
 #define DELAY_TIME 100
 #define BUZZ_ON  (Set_Bit(P1,5))

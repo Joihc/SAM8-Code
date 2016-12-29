@@ -42,7 +42,6 @@ uint8 buzzTime = 0;		//蜂鸣器鸣叫时间
 
 uint8 fanTime = FAN_ALL_TIME;		//风扇旋转时间 0表示不计时状态 >0表示计时状态
 
-//uint4 rangeNext = 0;		//下次档位
 uint4 rangeNow = 0;			//当前档位
 
 uint16 statusViewNum = 0;		//每位检测到状态表示左到右,1表示故障0表示正常  0无锅/1线盘超温/2线盘开路/3IGBT1超温/4IGBT1开路/5IGBT2超温/6IGBT2开路
@@ -69,7 +68,10 @@ uint4 nullPotLay=0;//无锅显示延迟
 uint4 nulligbtLay=0;//igbtError显示延迟
 
 uint4 whiletimes =0;
+
+#ifdef Screen_TM1629
 int16 tempurature =0;
+#endif
 
 #pragma inline=forced
 								   //--initiation
@@ -78,7 +80,7 @@ void sysInit()
 
 	WDTCON = 0xAA;
 	BTCON = 0x03;//128 清零
-	CLKCON = 0x18;//00/16 08/8 10/2 18/1   原08
+	CLKCON = 0x18;//00/16 08/8 10/2 18/1   
 	SYM = 0x00;
 
 	OSCCON = 0x04;
@@ -101,11 +103,7 @@ void sysInit()
 void ioInit()
 {
 	/* PO I/O口 不用IO口均设置为输入上拉 默认*/
-#ifdef INDUSTRY
-        P0CONH = 0x45;//01(ADC4) 01(温控，高电平关，低电平开00) 01(ADC6) 01(ADC7)
-#elif
         P0CONH = 0x55;//01(ADC4) 01(ADC5) 01(ADC6) 01(ADC7)
-#endif
 	
 	P0CONL = 0xC3;//11(ADC8) 00(P0.2/reset) 00(P0.1/XTOUT) 11(P0.0/FAN)
 	P0PUR = 0x07;//0 0 0 0 0   0 1 1 1
@@ -137,14 +135,11 @@ void defaultValue()
 	count_60ms = 0;
 	count_1s = 0;
 	count_2s = 0;
-
-	//BUZZ_ALL_TIME = 0;//蜂鸣器鸣叫总时长
+        
 	buzzTime = 0;		//蜂鸣器鸣叫时间
 
-	//FAN_ALL_TIME = 0;	//风扇旋转总时长
 	fanTime = FAN_ALL_TIME;		//风扇旋转时间 0表示不计时状态 >0表示计时状态
 
-	//rangeNext = 0;		//下次档位
 	rangeNow = 0;			//当前档位
 
 	statusViewNum = 0;		//每位检测到状态表示左到右,1表示故障0表示正常  0无锅/1线盘超温/2线盘开路/3IGBT1超温/4IGBT1开路/5IGBT2超温/6IGBT2开路
@@ -185,12 +180,11 @@ int main()
         CLEAR_WD;
         while(turnOnLay<TURN_ALL_TIME);
         
-        rangeNow = getSwitchByAnum();
-        
-#ifndef  INDUSTRY
+        rangeNow = getSwitchByAnum();   
+#ifdef Screen_TM1629
         tempurature = getTemperatureByAnum(6);
 #endif
-	//BUZZ_ALL_TIME = 4;
+
 
 	while (1)
 	{
@@ -229,10 +223,8 @@ int main()
 		  DetectVHight();//高压检测
 		  DetectVCut();//缺相检测
 		  DetectSwitchCut();//档位开关开路
-#ifndef INDUSTRY
 		  DetectUnderPotCut();//锅底探头开路
 		  DetectUnderPotHot();//锅底超温
-#endif
                 }
                 CLEAR_WD;
 
@@ -493,25 +485,9 @@ int main()
 				}
 				else
 				{
-#ifdef INDUSTRY                                     
-                                        if(Test_Bit(P0, 6))
-                                        {
-                                            fixPWM(0);//关闭输出
-                                            nullPot =0;//无锅次数
-                                            cTransformerCut = 0;//线盘状态
-                                        }
-                                        else
-                                        {
-                                            fixPWM(rangeNow);//开启输出 
-                                        }
-					ViewSet(rangeNow);//显示档位
-					fanTime = 0;//开启风机  
-
-#elif
 					fixPWM(rangeNow);//开启输出
 					ViewSet(rangeNow);//显示档位
 					fanTime = 0;//开启风机   
-#endif
 				}
 			}
 			else
@@ -1289,34 +1265,9 @@ void ViewSet(uint8 ShowNum)
            set_TM1629_Up(POWER_RATE[ShowNum]);
         }
 	set_TM1629_LeftNum(rangeNow);
-//#ifdef DEBUG
-//      set_TM1629_Leftstring(rangeNow); 
-//      set_TM1629_Down(0, 0);
-//#else
-      set_TM1629_Leftstring(getPWMRate());
+        set_TM1629_Leftstring(getPWMRate());
 	if (ShowNum<100 && ShowNum>0)//温度模式
 	{
-#ifdef INDUSTRY
-                tempnum= getADCNumByNum(13)/10;
-                if(tempnum == 0)
-                {
-                  set_TM1629_Down(0, 1);
-                }
-                else
-                {
-                  tempnum = (getADCNumByNum(12)*4)/tempnum;
-                  if(tempurature+3<tempnum)
-                  {
-                    tempurature++;
-                  }
-                  else if(tempurature-3>tempnum)
-                  {
-                    tempurature--;
-                  }
-                  set_TM1629_Down(tempurature, 1);
-                }
-#elif
-
                 tempnum =getTemperatureByAnum(6);
           	if(tempurature+2<tempnum)
                 {
@@ -1329,15 +1280,13 @@ void ViewSet(uint8 ShowNum)
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-		set_TM1629_Down(tempurature, 1);
-#endif               
+		set_TM1629_Down(tempurature, 1);            
 	}
 	else//时间模式
 	{
 		set_TM1629_Down(0, 0);
                 //set_TM1629_Down(getVo(), 1);
 	}
-//#endif
 	whileUpdate_TM1629();
 }
 #endif
