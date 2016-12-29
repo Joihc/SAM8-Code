@@ -28,6 +28,8 @@ __code const uint8 POWER_RATE[] =
 	0, 4 , 6 , 8 , 12, 16,18, 22,25
 #elif defined P_30KW
 	0, 5 , 8 , 9 , 14, 18, 21, 25, 30
+#elif defined P_35KW
+        0, 5 , 6 , 10 , 18, 22, 26, 30, 35
 #endif
 };
 uint4 firstOpen = TRUE;
@@ -67,9 +69,7 @@ uint4 nullPotLay=0;//无锅显示延迟
 uint4 nulligbtLay=0;//igbtError显示延迟
 
 uint4 whiletimes =0;
-#ifdef  Screen_TM1629
 int16 tempurature =0;
-#endif
 
 #pragma inline=forced
 								   //--initiation
@@ -78,7 +78,7 @@ void sysInit()
 
 	WDTCON = 0xAA;
 	BTCON = 0x03;//128 清零
-	CLKCON = 0x10;//00/16 08/8 10/2 18/1   原08
+	CLKCON = 0x18;//00/16 08/8 10/2 18/1   原08
 	SYM = 0x00;
 
 	OSCCON = 0x04;
@@ -179,7 +179,7 @@ int main()
 #endif
 
 	defaultValue();
-
+        initPWM();
 	ei;
         BUZZ_ON;
         CLEAR_WD;
@@ -187,7 +187,7 @@ int main()
         
         rangeNow = getSwitchByAnum();
         
-#ifdef  Screen_TM1629
+#ifndef  INDUSTRY
         tempurature = getTemperatureByAnum(6);
 #endif
 	//BUZZ_ALL_TIME = 4;
@@ -1259,7 +1259,14 @@ void SwitchSet()
 	uint4 rangeNext = getSwitchByAnum();
 	if (rangeNext != rangeNow && rangeNext != 9)
 	{
-          rangeNow=rangeNext;
+          if(rangeNow <rangeNext)
+          {
+            rangeNow++;
+          }
+          else if(rangeNow>rangeNext)
+          {
+            rangeNow--;
+          }
           BUZZ_ON;
 	}
 }
@@ -1282,13 +1289,34 @@ void ViewSet(uint8 ShowNum)
            set_TM1629_Up(POWER_RATE[ShowNum]);
         }
 	set_TM1629_LeftNum(rangeNow);
-#ifdef DEBUG
-      set_TM1629_Leftstring(rangeNow); 
-      set_TM1629_Down(0, 0);
-#else
+//#ifdef DEBUG
+//      set_TM1629_Leftstring(rangeNow); 
+//      set_TM1629_Down(0, 0);
+//#else
       set_TM1629_Leftstring(getPWMRate());
 	if (ShowNum<100 && ShowNum>0)//温度模式
 	{
+#ifdef INDUSTRY
+                tempnum= getADCNumByNum(13)/10;
+                if(tempnum == 0)
+                {
+                  set_TM1629_Down(0, 1);
+                }
+                else
+                {
+                  tempnum = (getADCNumByNum(12)*4)/tempnum;
+                  if(tempurature+3<tempnum)
+                  {
+                    tempurature++;
+                  }
+                  else if(tempurature-3>tempnum)
+                  {
+                    tempurature--;
+                  }
+                  set_TM1629_Down(tempurature, 1);
+                }
+#elif
+
                 tempnum =getTemperatureByAnum(6);
           	if(tempurature+2<tempnum)
                 {
@@ -1301,24 +1329,15 @@ void ViewSet(uint8 ShowNum)
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-		//set_TM1629_Down(tempurature, 1);
-                //tempnum =getADCNumByNum(13);
-                //if(tempnum ==0)
-                //{
-                //  set_TM1629_Down(0, 1);
-                //}
-                //else
-                //{
-                //  set_TM1629_Down(getADCNumByNum(12)*4/tempnum, 1);
-                //}
-                
+		set_TM1629_Down(tempurature, 1);
+#endif               
 	}
 	else//时间模式
 	{
 		set_TM1629_Down(0, 0);
                 //set_TM1629_Down(getVo(), 1);
 	}
-#endif
+//#endif
 	whileUpdate_TM1629();
 }
 #endif

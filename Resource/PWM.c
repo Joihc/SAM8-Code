@@ -4,6 +4,12 @@
 
 uint8 pwm =PWM_MIN;//
 uint4 pwmMinus = 0;//1表示需要补偿
+
+void initPWM()
+{
+  pwm=PWM_MIN;
+  pwmMinus =0;
+}
 #pragma inline=forced
 void closePWM()
 {
@@ -69,7 +75,7 @@ void fixPWM(uint8 index)
     }
     else
     {
-      if(outCurrent*4/inCurrent>=2)
+      if(inCurrent !=0 && (outCurrent*4)/(inCurrent/10)>=32)
       {
         --pwm;
       }

@@ -34,6 +34,7 @@
 #define PWM_RETURN (90)//检查锅和回调频率 20KHZ
 #define RETURN_PWM (30)//回调AD值
 //0.5 -1.2
+void initPWM();
 void setTBPWM();
 void openPWM();
 void closePWM();

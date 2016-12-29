@@ -584,7 +584,6 @@ uint16 getADCNumByNum(uint8 IO_P)
   //uint16 buf[FILTER_N];
   uint16 filter_temp = 0;
 
-
   for(i = 0; i < FILTER_N; i++) {
       filter_temp+= getADCNum(IO_P);
       delay(2);

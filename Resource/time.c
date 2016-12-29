@@ -6,7 +6,7 @@
 */
 void delay(volatile uint16 ms)
 {
-    ms=ms*6+5;//140
+    ms=ms*12+10;//140
     do{
       asm("nop"); ms--;
     }while(ms!=0);
