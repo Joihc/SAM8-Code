@@ -31,6 +31,7 @@ void ViewSet(uint8 ShowNum);
 
  void TAInterupt();
  void P33Interupt();
+ uint4 P33interrptOpen();
  void P34Interupt();
 __interrupt void int_9488();
 

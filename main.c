@@ -123,7 +123,7 @@ void ioInit()
 	P3CONH = 0x05;//00(P3.6/SCLK) 00(P3.5/SDAT) 01(P3.4/下降) 01(P3.3/下降沿)
 	P3CONL = 0x00;//000(P3.2) 000(P3.1) 00(P3.0)
 
-	P3INT = 0x08;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/下降)10 00(P3.3/下降沿)10
+	P3INT = 0x0A;//00(P3.6/SCLK) 00(P3.5/SDAT) 00(P3.4/下降)10 00(P3.3/下降沿)10
 	P3PND = 0x00;//0000 1(P3.6/SCLK) 0(P3.5/SDAT) 0(P3.4/下降沿) 0(P3.3/下降沿) -中断挂起 置0重置
 				 /*  P4 I/0口 全部挂起*/
 }
@@ -363,7 +363,7 @@ int main()
                                       nulligbtLay++;
                                     }
 				}
-				if(Test_Bit(P3, 3))
+				if(Test_Bit(P3, 3) && P33interrptOpen())
 				{
                                   if(igbtErrorCheckTime == 0)//时间重置且在复位后的状态
                                   {
@@ -1102,13 +1102,13 @@ void DetectIgbtError()
 {
 	uint16 temp_2 = (uint16)1 << 13;
 	uint4 temp = Test_Bit(P3, 3);//0不正常
-	if (temp&& !(statusViewNum & temp_2))
+	if (temp && P33interrptOpen() && !(statusViewNum & temp_2))
 	{
 		//正常且正常
 		//igbtError = 0;
 		return;
 	}
-	if (temp && (statusViewNum & temp_2))
+	if (temp && P33interrptOpen() && (statusViewNum & temp_2))
 	{
 		//正常且不正常
 		delay(2);
@@ -1124,17 +1124,17 @@ void DetectIgbtError()
                 }
 		return;
 	}
-	if (!temp && (statusViewNum & temp_2))
+	if ((!temp||!P33interrptOpen()) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
 		return;
 	}
-	if (!temp && !(statusViewNum & temp_2))
+	if ((!temp||!P33interrptOpen()) && !(statusViewNum & temp_2))
 	{
 		//不正常且正常
-		delay(2);
-		if (Test_Bit(P3, 3))
-			return;
+		//delay(2);
+		//if (Test_Bit(P3, 3))
+		//	return;
                 statusViewNum |= temp_2;//置1 不正常
                 nulligbtLay =0;
                 nulligbtToLay =0;//重置故障恢复时间
@@ -1417,7 +1417,18 @@ void TAInterupt()
 void P33Interupt()
 {
    //关闭输出
-  //fixPWM(0);
+  //fixPWM(0);pwmStop
+  //PWMSTOP();
+  if(P1CONL == 0xFD)//在开启状态
+  {
+    P3INT &= 0xFC;//关闭中断
+  }
+  //(P3INT &= 0x02) ==1;
+}
+#pragma inline=forced
+uint4 P33interrptOpen()//1表示开启
+{
+  return (P3INT &= 0x02) == 1;
 }
 #pragma inline=forced
 void P34Interupt()
@@ -1425,4 +1436,5 @@ void P34Interupt()
   //相位补偿
   PWMPLUS();
   //CLEAR_WD;
+  //(P3INT &= 0x08) == 1;
 }

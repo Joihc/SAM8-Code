@@ -3,12 +3,10 @@
 #include "PWM.h"
 
 uint8 pwm =PWM_MIN;//
-uint4 pwmMinus = 0;//1表示需要补偿
 
 void initPWM()
 {
   pwm=PWM_MIN;
-  pwmMinus =0;
 }
 #pragma inline=forced
 void closePWM()
@@ -34,6 +32,7 @@ void fixPWM(uint8 index)
       case 0:
         pwm = PWM_MIN;//30hz
         closePWM();
+        P3INT |= 0x02;//开启中断
         ei;
       return;
           case 1:
@@ -67,15 +66,14 @@ void fixPWM(uint8 index)
     //}
     //else
     //{
-    if(pwmMinus == 1)
+    if((P3INT &= 0x08) == 0)
     {
-      --pwm;
-      pwmMinus =0;
-      P3INT = 0x08;//开启中断
+      pwm -= 2;
+      P3INT |= 0x08;//开启中断
     }
-    else
+    else 
     {
-      if(inCurrent !=0 && (outCurrent*4)/(inCurrent/10)>=32)
+      if(inCurrent !=0 && (outCurrent*4/inCurrent>=3))
       {
         --pwm;
       }
@@ -100,12 +98,13 @@ void fixPWM(uint8 index)
     ei;
 }
 
+
 void PWMPLUS()
 {
   if(P1CONL == 0xFD)//在开启状态
   {
-    pwmMinus =1;
-    P3INT = 0x00;//关闭中断
+    //pwmMinus =1;
+    P3INT &= 0xF3;//关闭中断
   }
 }
 void testPotPwm()
