@@ -230,9 +230,9 @@ int main()
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {                                         
-                  DetectTransformerCut();//线盘断了或者输出互感器坏了
+                 // DetectTransformerCut();//线盘断了或者输出互感器坏了
 		  DetectIgbtError();//IGBT驱动故障
-                  DetectNullPot();//无锅检测 
+                  //DetectNullPot();//无锅检测 
                 }
 
                 CLEAR_WD;
@@ -363,7 +363,7 @@ int main()
                                       nulligbtLay++;
                                     }
 				}
-				if(Test_Bit(P3, 3) && P33interrptOpen())
+				if(Test_Bit(P3, 3)&& P33interrptOpen())
 				{
                                   if(igbtErrorCheckTime == 0)//时间重置且在复位后的状态
                                   {
@@ -1296,8 +1296,8 @@ __interrupt void int_9488()
 {
 	if (TINTPND & 0x01)//timer A(interal timer)
 	{
+                TAInterupt();
 		TINTPND &= ~0x01;
-		TAInterupt();
 	}
 	else if (P3PND & 0x08)//int3(pulse input)
 	{
@@ -1428,7 +1428,7 @@ void P33Interupt()
 #pragma inline=forced
 uint4 P33interrptOpen()//1表示开启
 {
-  return (P3INT &= 0x02) == 1;
+  return (P3INT & 0x02) != 0;
 }
 #pragma inline=forced
 void P34Interupt()

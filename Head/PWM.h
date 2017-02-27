@@ -39,6 +39,7 @@ void setTBPWM();
 void openPWM();
 void closePWM();
 void fixPWM(uint8 index);
+
 void PWMPLUS();
 uint4 getPWMRate();
 void testPotPwm();

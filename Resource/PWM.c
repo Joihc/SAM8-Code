@@ -66,9 +66,9 @@ void fixPWM(uint8 index)
     //}
     //else
     //{
-    if((P3INT &= 0x08) == 0)
+    if(!(P3INT & 0x0C))
     {
-      pwm -= 2;
+      pwm -= 1;
       P3INT |= 0x08;//¿ªÆôÖÐ¶Ï
     }
     else 
