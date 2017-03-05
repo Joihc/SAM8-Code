@@ -22,6 +22,17 @@
 #define FILTER_N (10) //采样个数
 #define SWITCH_AREA (5)//开关模糊区
 #define AREA (2)//自身模糊区大小
+//96 172 237 294 384 455 512 578 630
+
+#define S_0 (96)  //96 172 237 294 384 455 512 578 630    123K
+#define S_1 (172) // 96 172 235 294 335 385 445 505 545 585  1 2K
+#define S_2 (237) 
+#define S_3 (294) 
+#define S_4 (384) 
+#define S_5 (455) 
+#define S_6 (512) 
+#define S_7 (578) 
+#define S_8 (630) 
 
 uint16 getVo();
 
@@ -34,7 +45,7 @@ uint4 get_07ADC();
 uint4 get_06ADC();
 uint4 get_13ADC();
 
-uint16 getADCNumByNum(uint8 IO_P);
+//uint16 getADCNumByNum(uint8 IO_P);
 uint16 getADCNum(uint8 IO_P);
 int16 getTemperatureByAnum(uint8 IO_P);
 

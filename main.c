@@ -345,7 +345,7 @@ int main()
 			//IGBT驱动故障
 			if ((statusViewNum & ((uint16)1 << 13)) && !haveViewSet && !checkTimeOn)
 			{
-                                if(nulligbtLay<1)
+                                if(nulligbtLay<2)
                                 {
                                   ViewSet(rangeNow);
                                 }
@@ -358,7 +358,7 @@ int main()
                                 if (igbtErrorCheckTime >=DELAY_TIME)
 				{
 				    igbtErrorCheckTime =0;
-                                    if(nulligbtLay <2)
+                                    if(nulligbtLay <3)
                                     {
                                       nulligbtLay++;
                                     }
@@ -430,7 +430,7 @@ int main()
                         //无锅
 			if ((statusViewNum & ((uint16)1 << 0)) && !haveViewSet && !checkTimeOn)
 			{
-                            if(nullPotLay <1)
+                            if(nullPotLay <2)
                             {
                               ViewSet(rangeNow);
                             }
@@ -445,7 +445,7 @@ int main()
 				{
 				    nullPotCheckTime = 0;
                                     checkNullPot =0;
-                                    if(nullPotLay<2)
+                                    if(nullPotLay<3)
                                     {
                                       nullPotLay++;
                                     }
@@ -1188,7 +1188,7 @@ void DetectTransformer()
 void DetectTransformerCut()
 {
 	uint16 temp_2 = (uint16)1 << 15;
-	uint4 temp = getADCNumByNum(12);//0表示线盘断了
+	uint4 temp = getADCNum(12);//0表示线盘断了
 	if (temp && !(statusViewNum & temp_2))
 	{
 		//正常且正常
@@ -1199,7 +1199,7 @@ void DetectTransformerCut()
 	{
 		//正常且不正常
 		delay(2);
-		if (!getADCNumByNum(12))
+		if (!getADCNum(12))
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
 		cTransformerCut = 0;
@@ -1216,7 +1216,7 @@ void DetectTransformerCut()
 	{
 		//不正常且正常
 		delay(2);
-		if (getADCNumByNum(12))
+		if (getADCNum(12))
 			return;
 		cTransformerCut++;
 		if (cTransformerCut >= 8)
@@ -1262,11 +1262,11 @@ void ViewSet(uint8 ShowNum)
 	if (ShowNum<100 && ShowNum>0)//温度模式
 	{
                 tempnum =getTemperatureByAnum(6);
-          	if(tempurature+2<tempnum)
+          	if(tempurature+3<tempnum)
                 {
                   tempurature++;
                 }
-                else if(tempurature-2>tempnum)
+                else if(tempurature-3>tempnum)
                 {
                   tempurature--;
                 }

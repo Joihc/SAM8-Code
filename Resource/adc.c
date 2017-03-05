@@ -357,12 +357,12 @@ __code const unsigned short  rtTable4[] =
   0xa	// 300.00		0.1023
 };
 
-
+uint4 switchs[] = {9,9,9,9};
 uint16 vo=0;
 /// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
 {
-  uint16 three = getADCNumByNum(3);// 565 679  310-456V  942     250-500-760
+  uint16 three = getADCNum(3);// 565 679  310-456V  942     250-500-760
   if(vo ==0)
   {
     vo = three;
@@ -423,14 +423,14 @@ uint4 get_03ADC(uint4 last_index)
   //}
   //return 0;
 }
-uint16 getVo()
-{
-  return vo;
-}
+//uint16 getVo()
+//{
+ // return vo;
+//}
 ///* P0.5/ADC6/档位 10K 5V*/  开路 >4.5V 1   0正常
 uint4 get_05ADC()
 {
-  uint16 Switch = getADCNumByNum(5);//
+  uint16 Switch = getADCNum(5);//
   if(Switch > 800)
   {
     return 1;
@@ -440,7 +440,7 @@ uint4 get_05ADC()
 // P0.4/ADC7/IGBT1温度10K 5V  0正常1表示开路  2.3温高  2表示超温   65C
 uint4 get_04ADC()
 {
-  uint16  IGBTTemp = getADCNumByNum(4);
+  uint16  IGBTTemp = getADCNum(4);
   if(IGBTTemp > NULL_NUM)
   {
     return 1;
@@ -458,7 +458,7 @@ uint4 get_04ADC()
 // P1.1/ADC2/IGBT1温度10K 5V   0正常1表示开路  2.3温高  2表示超温  65C
 uint4 get_11ADC()
 {
-  uint16  IGBTTemp = getADCNumByNum(11);
+  uint16  IGBTTemp = getADCNum(11);
   if(IGBTTemp > NULL_NUM)
   {
     return 1;
@@ -476,7 +476,7 @@ uint4 get_11ADC()
 //P0.7/ADC4/线盘温度 10K 5V   0正常 1表示超温 2表示开路   120
 uint4 get_07ADC()
 {
-  uint16  StringTemp = getADCNumByNum(7);
+  uint16  StringTemp = getADCNum(7);
   if(StringTemp >NULL_NUM)
   {
     return 2;
@@ -490,7 +490,7 @@ uint4 get_07ADC()
 /* P0.6/ADC5/锅底温度 10K 5V   0x13*/
 uint4 get_06ADC()
 {
-  uint16  PotTemp = getADCNumByNum(6);
+  uint16  PotTemp = getADCNum(6);
   if(PotTemp >NULL_NUM)
   {
     return 2;
@@ -505,7 +505,7 @@ uint4 get_06ADC()
 /* 输入互感器 P1.3*/
 uint4 get_13ADC()
 {
-  uint16  PotTemp = getADCNumByNum(13);
+  uint16  PotTemp = getADCNum(13);
   if(PotTemp <10)//0.5V
   {
     return 1;
@@ -577,18 +577,19 @@ uint16 getADCNum(uint8 IO_P)
   ei;
   return AD_Dat;
 }
-
-uint16 getADCNumByNum(uint8 IO_P)
-{
-  int4 i;
+//#pragma inline=forced
+//uint16 getADCNumByNum(uint8 IO_P)
+//{
+ // return getADCNum(IO_P);
+  //int4 i;
   //uint16 buf[FILTER_N];
-  uint16 filter_temp = 0;
+  //uint16 filter_temp = 0;
 
-  for(i = 0; i < FILTER_N; i++) {
-      filter_temp+= getADCNum(IO_P);
-      delay(2);
-      CLEAR_WD;
-  }
+  //for(i = 0; i < FILTER_N; i++) {
+  //    filter_temp+= getADCNum(IO_P);
+  //    delay(2);
+  //    CLEAR_WD;
+  //}
   /*
   for(j = 0; j < FILTER_N - 1; j++) {
     for(i = 0; i < FILTER_N - 1 - j; i++) {
@@ -601,16 +602,16 @@ uint16 getADCNumByNum(uint8 IO_P)
   }
   */
 
-  filter_temp= filter_temp/FILTER_N;
-  return filter_temp;
-}
+  //filter_temp= filter_temp/FILTER_N;
+ // return filter_temp;
+//}
 
 //温度转换
 int16 getTemperatureByAnum(uint8 IO_P)
 {
   uint8 i = 0;
 
-  uint16 Anum = getADCNumByNum(IO_P);
+  uint16 Anum = getADCNum(IO_P);
 
   //-40 -80
   if(Anum > 556)
@@ -652,12 +653,13 @@ int16 getTemperatureByAnum(uint8 IO_P)
 
 uint4 getSwitchs()
 {
-  uint4 switchs[] = {9,9,9};
   switchs[0] = getSwitchByAnum();
    switchs[1] = getSwitchByAnum();
     switchs[2] = getSwitchByAnum();
+      switchs[3] = getSwitchByAnum();
      if(switchs[0] == switchs[1]
-        && switchs[0] == switchs[2])
+        &&switchs[0] == switchs[2]
+          &&switchs[0] == switchs[3])
      {
         return switchs[0];    
      }
@@ -678,39 +680,39 @@ uint4 getSwitchs()
 uint4 getSwitchByAnum()// 96 172 237 294 384 455 512 578 630
 {
   uint16 Anum = getADCNum(5);
-  if(Anum >(96-SWITCH_AREA) && Anum <(96+SWITCH_AREA))
+  if(Anum >(S_0-SWITCH_AREA) && Anum <(S_0+SWITCH_AREA))
   {
     return 0;
   }
-  else if(Anum > (172-SWITCH_AREA) && Anum <(172+SWITCH_AREA))
+  else if(Anum > (S_1-SWITCH_AREA) && Anum <(S_1+SWITCH_AREA))
   {
     return 1;
   }
-    else if(Anum > (237-SWITCH_AREA) && Anum <(237+SWITCH_AREA))
+    else if(Anum > (S_2-SWITCH_AREA) && Anum <(S_2+SWITCH_AREA))
   {
     return 2;
   }
-    else if(Anum > (294-SWITCH_AREA) && Anum <(294+SWITCH_AREA))
+    else if(Anum > (S_3-SWITCH_AREA) && Anum <(S_3+SWITCH_AREA))
   {
     return 3;
   }
-    else if(Anum > (384-SWITCH_AREA) && Anum <(384+SWITCH_AREA))
+    else if(Anum > (S_4-SWITCH_AREA) && Anum <(S_4+SWITCH_AREA))
   {
     return 4;
   }
-    else if(Anum > (455-SWITCH_AREA) && Anum <(455+SWITCH_AREA))
+    else if(Anum > (S_5-SWITCH_AREA) && Anum <(S_5+SWITCH_AREA))
   {
     return 5;
   }
-    else if(Anum > (512-SWITCH_AREA) && Anum <(512+SWITCH_AREA))
+    else if(Anum > (S_6-SWITCH_AREA) && Anum <(S_6+SWITCH_AREA))
   {
     return 6;
   }
-    else if(Anum > (578-SWITCH_AREA) && Anum <(578+SWITCH_AREA))
+    else if(Anum > (S_7-SWITCH_AREA) && Anum <(S_7+SWITCH_AREA))
   {
     return 7;
   }
-    else if(Anum > (630-SWITCH_AREA) && Anum <(630+SWITCH_AREA))
+    else if(Anum > (S_8-SWITCH_AREA) && Anum <(S_8+SWITCH_AREA))
   {
     return 8;
   }

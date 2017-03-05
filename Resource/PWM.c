@@ -23,8 +23,8 @@ void openPWM()
 
 void fixPWM(uint8 index)
 {
-    uint16 outCurrent = getADCNumByNum(12);//输出互感器
-    uint16 inCurrent = getADCNumByNum(13);//输入互感器
+    uint16 outCurrent = getADCNum(12);//输出互感器
+    uint16 inCurrent = getADCNum(13);//输入互感器
     uint16 p=0;
     di;
     switch(index)
@@ -145,7 +145,7 @@ void testPWM(uint8 index)
 }
 uint4 getPWMRate()
 {
-  uint16 range  = getADCNumByNum(12);
+  uint16 range  = getADCNum(12);
   if(range>PWM8)
   {
     return 8;
