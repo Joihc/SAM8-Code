@@ -324,7 +324,7 @@ __code const uint8  rtTable3[] =
   0x10,	// 270.00		0.1616
   0x10,	// 271.00		0.1591
 };
-__code const short  rtTable4[] =
+__code const unsigned short  rtTable4[] =
 {
   0xf,	        // 272.00		0.1566
   0xf,	        // 273.00		0.1542
@@ -357,7 +357,7 @@ __code const short  rtTable4[] =
   0xa	// 300.00		0.1023
 };
 
-//uint16 buf[FILTER_N] = {600,600,600};
+
 uint16 vo=0;
 /// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
@@ -648,6 +648,20 @@ int16 getTemperatureByAnum(uint8 IO_P)
     }
     return i+272;
   }
+}
+
+uint4 getSwitchs()
+{
+  uint4 switchs[] = {9,9,9};
+  switchs[0] = getSwitchByAnum();
+   switchs[1] = getSwitchByAnum();
+    switchs[2] = getSwitchByAnum();
+     if(switchs[0] == switchs[1]
+        && switchs[0] == switchs[2])
+     {
+        return switchs[0];    
+     }
+     return 9;
 }
 //档位开关档数
 /*

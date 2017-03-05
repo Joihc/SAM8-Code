@@ -230,9 +230,9 @@ int main()
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
                 {                                         
-                 // DetectTransformerCut();//线盘断了或者输出互感器坏了
+                  DetectTransformerCut();//线盘断了或者输出互感器坏了
 		  DetectIgbtError();//IGBT驱动故障
-                  //DetectNullPot();//无锅检测 
+                  DetectNullPot();//无锅检测 
                 }
 
                 CLEAR_WD;
@@ -345,7 +345,7 @@ int main()
 			//IGBT驱动故障
 			if ((statusViewNum & ((uint16)1 << 13)) && !haveViewSet && !checkTimeOn)
 			{
-                                if(nulligbtLay<2)
+                                if(nulligbtLay<1)
                                 {
                                   ViewSet(rangeNow);
                                 }
@@ -430,7 +430,7 @@ int main()
                         //无锅
 			if ((statusViewNum & ((uint16)1 << 0)) && !haveViewSet && !checkTimeOn)
 			{
-                            if(nullPotLay <2)
+                            if(nullPotLay <1)
                             {
                               ViewSet(rangeNow);
                             }
@@ -1232,17 +1232,10 @@ void DetectTransformerCut()
 #pragma inline=forced
 void SwitchSet()
 {
-	uint4 rangeNext = getSwitchByAnum();
+	uint4 rangeNext = getSwitchs();
 	if (rangeNext != rangeNow && rangeNext != 9)
 	{
-          if(rangeNow <rangeNext)
-          {
-            rangeNow++;
-          }
-          else if(rangeNow>rangeNext)
-          {
-            rangeNow--;
-          }
+          rangeNow=rangeNext;
           BUZZ_ON;
 	}
 }
@@ -1417,13 +1410,10 @@ void TAInterupt()
 void P33Interupt()
 {
    //关闭输出
-  //fixPWM(0);pwmStop
-  //PWMSTOP();
   if(P1CONL == 0xFD)//在开启状态
   {
     P3INT &= 0xFC;//关闭中断
   }
-  //(P3INT &= 0x02) ==1;
 }
 #pragma inline=forced
 uint4 P33interrptOpen()//1表示开启
@@ -1434,7 +1424,8 @@ uint4 P33interrptOpen()//1表示开启
 void P34Interupt()
 {
   //相位补偿
-  PWMPLUS();
-  //CLEAR_WD;
-  //(P3INT &= 0x08) == 1;
+  if(P1CONL == 0xFD)//在开启状态
+  {
+    P3INT &= 0xF3;//关闭中断
+  }
 }

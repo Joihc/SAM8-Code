@@ -37,6 +37,8 @@ uint4 get_13ADC();
 uint16 getADCNumByNum(uint8 IO_P);
 uint16 getADCNum(uint8 IO_P);
 int16 getTemperatureByAnum(uint8 IO_P);
+
+uint4 getSwitchs();
 uint4 getSwitchByAnum();
 void writeToAT24C1();
 
