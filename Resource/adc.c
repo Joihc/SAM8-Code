@@ -362,32 +362,32 @@ uint16 vo=0;
 /// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
 {
-  uint16 three = getADCNum(3);// 565 679  310-456V  942     250-500-760
-  if(vo ==0)
+  uint16 three = getADCNum(3);//250-500-760
+  if(vo ==0)                  
   {
     vo = three;
   }
-  if(vo>three+6)
+  if(vo>three+10)
   {
     vo--;
   }
-  else if(vo<three-6)
+  else if(vo<three-10)
   {
     vo++;
   }
-  if(vo < 250-AREA)              //450 716  310-450           269-450-716
+  if(vo < 250-AREA)            
   {
     return 1;
   } 
-  else if(vo >250+AREA && vo <458-AREA)
+  else if(vo >250+AREA && vo <500-AREA)
   {
     return 2;
   }
-  else if(vo >458+AREA && vo <732-AREA)
+  else if(vo >500+AREA && vo <760-AREA)
   {
     return 0;
   }
-  else if(vo >732+AREA)
+  else if(vo >760+AREA)
   {
     return 3;
   }
@@ -396,7 +396,7 @@ uint4 get_03ADC(uint4 last_index)
   {
     return last_index==1?1:2;
   }
-  else if(vo >=458-AREA && vo <=458+AREA)
+  else if(vo >=500-AREA && vo <=500+AREA)
   {
     if(last_index ==2 || last_index ==1)
     {
@@ -407,7 +407,7 @@ uint4 get_03ADC(uint4 last_index)
       return 0;
     }
   }
-  else if(vo >=732-AREA && vo <= 732+AREA)
+  else if(vo >=760-AREA && vo <= 760+AREA)
   {
     return last_index == 3 ? 3:0;
   }
