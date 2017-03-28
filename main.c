@@ -443,14 +443,13 @@ int main()
 				checkTimeOn = TRUE;
 				if (nullPotCheckTime >=DELAY_TIME)
 				{
-				    nullPotCheckTime = 0;
-                                    checkNullPot =0;
+				    nullPotCheckTime = 0;            
                                     if(nullPotLay<3)
                                     {
                                       nullPotLay++;
                                     }
 				}
-                                if(checkNullPot>4)
+                                if(checkNullPot<100)
                                 {
                                     fixPWM(0);                               
                                 }
@@ -458,9 +457,13 @@ int main()
                                 {
                                     fixPWM(rangeNow);
                                 }
-                                if(checkNullPot<=4)
+                                if(checkNullPot<=120)
                                 {
                                   checkNullPot++;
+                                }
+                                else
+                                {
+                                  checkNullPot =0;
                                 }
                                 //nullPot =0;//无锅次数
                                 //  igbtError=0;//IGBT驱动故障
