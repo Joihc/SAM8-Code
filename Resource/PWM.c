@@ -26,6 +26,16 @@ void fixPWM(uint8 index)
     uint16 outCurrent = getADCNum(12);//输出互感器
     uint16 inCurrent = getADCNum(13);//输入互感器
     uint16 p=0;
+    
+      
+    if( index !=0 && (getADCNum(4)<=0x0288 || getADCNum(11)<=0x0288))
+    {
+      index /= 2;
+      if(index == 0)
+      {
+        index = 1;
+      }
+    }
     di;
     switch(index)
     {
@@ -73,7 +83,7 @@ void fixPWM(uint8 index)
     }
     else 
     {
-      if(inCurrent !=0 && (outCurrent*4/inCurrent>=3))
+      if(inCurrent !=0 && (outCurrent*4/inCurrent>=15))
       {
         --pwm;
       }

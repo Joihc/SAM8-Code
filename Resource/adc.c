@@ -445,7 +445,7 @@ uint4 get_04ADC()
   {
     return 1;
   }
-  else if(IGBTTemp <=0x025e)//75
+  else if(IGBTTemp <=0x0245)//78
   {
     return 2;
   }
@@ -463,7 +463,7 @@ uint4 get_11ADC()
   {
     return 1;
   }
-  else if(IGBTTemp <=0x025e)//75
+  else if(IGBTTemp <=0x0245)//78
   {
     return 2;
   }
