@@ -172,7 +172,7 @@ __code const uint16   rtTable2[] =
     0x0109,	// 122.00		3.5060
     0x0104,	// 123.00		3.4130
 };
-      //--------130/5 =[0]-[26]
+/*    //--------130/5 =[0]-[26]
 __code const uint8  rtTable3[] =
 {
   0xff,	// 124.00		3.3220
@@ -356,77 +356,69 @@ __code const unsigned short  rtTable4[] =
   0xa,	        // 299.00		0.1039
   0xa	// 300.00		0.1023
 };
-
+*/
 uint4 switchs[] = {9,9,9,9};
-uint16 vo=0;
-/// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 3是电压过高 2是低。1缺相 0表示正常
+uint16 vol[VOL_LENGTH]={0};
+uint8 vol_index =0;
+
+void init_adc()
+{
+  uint8 i =0;
+  for(;i<VOL_LENGTH;i++)
+  {
+    vol[i] = 600;
+  }
+}
+/// P0.3/ADC8/三项输入电压互感 10K接地 10K接入 380：3变压 2是电压过高 1 低 缺相 0表示正常
 uint4 get_03ADC(uint4 last_index)
 {
-  uint16 three = getADCNum(3);//250-500-760
-  if(vo ==0)                  
-  {
-    vo = three;
-  }
-  if(vo>three+10)
-  {
-    vo--;
-  }
-  else if(vo<three-10)
-  {
-    vo++;
-  }
-  if(vo < 250-AREA)            
+  uint16 three = getVo();//getADCNum(3);//250-500-760
+  if(three < VOL_LOW-AREA)            
   {
     return 1;
   } 
-  else if(vo >250+AREA && vo <500-AREA)
-  {
-    return 2;
-  }
-  else if(vo >500+AREA && vo <760-AREA)
+  else if(three >VOL_LOW+AREA && three <VOL_HIGH-AREA)
   {
     return 0;
   }
-  else if(vo >760+AREA)
+  else if(three >VOL_HIGH+AREA)
   {
-    return 3;
+    return 2;
   }
   
-  if(vo>=250-AREA && vo <= 250+AREA)
+  if(three>=VOL_LOW-AREA && three <= VOL_LOW+AREA)
   {
-    return last_index==1?1:2;
+    return last_index==0?0:1;
   }
-  else if(vo >=500-AREA && vo <=500+AREA)
+  else if(three >=VOL_HIGH-AREA && three <=VOL_HIGH+AREA)
   {
-    if(last_index ==2 || last_index ==1)
-    {
-      return 2;
-    }
-    else if(last_index ==0 ||last_index ==3)
-    {
-      return 0;
-    }
-  }
-  else if(vo >=760-AREA && vo <= 760+AREA)
-  {
-    return last_index == 3 ? 3:0;
+    return last_index ==0?0:2;
   }
   if(VLDCON & 0x40)
   {
     return 1;
   }
   return last_index;
-  //}
-  //else if(three > 736)//736.56
-  //{
-  //  return 3;
-  //}
-  //return 0;
 }
-//uint16 getVo()
-//{
- // return vo;
-//}
+void updata_vol()
+{
+  if(vol_index >=10)
+  {
+    vol_index =0;
+  }
+  vol[vol_index] = getADCNum(3);
+  vol_index++;
+}
+uint16 getVo()
+{
+  uint16 vol_temp =0;
+  int8 i =0;
+  for(;i<VOL_LENGTH;i++)
+  {
+    vol_temp+=vol[i];
+  }
+  return vol_temp/VOL_LENGTH;
+}
 ///* P0.5/ADC6/档位 10K 5V*/  开路 >4.5V 1   0正常
 uint4 get_05ADC()
 {
@@ -506,7 +498,7 @@ uint4 get_06ADC()
 uint4 get_13ADC()
 {
   uint16  PotTemp = getADCNum(13);
-  if(PotTemp <10)//0.5V
+  if(PotTemp <11)//0.5V
   {
     return 1;
   }
@@ -577,35 +569,6 @@ uint16 getADCNum(uint8 IO_P)
   ei;
   return AD_Dat;
 }
-//#pragma inline=forced
-//uint16 getADCNumByNum(uint8 IO_P)
-//{
- // return getADCNum(IO_P);
-  //int4 i;
-  //uint16 buf[FILTER_N];
-  //uint16 filter_temp = 0;
-
-  //for(i = 0; i < FILTER_N; i++) {
-  //    filter_temp+= getADCNum(IO_P);
-  //    delay(2);
-  //    CLEAR_WD;
-  //}
-  /*
-  for(j = 0; j < FILTER_N - 1; j++) {
-    for(i = 0; i < FILTER_N - 1 - j; i++) {
-      if(buf[i] > buf[i + 1]) {
-        filter_temp = buf[i];
-        buf[i] = buf[i + 1];
-        buf[i + 1] = filter_temp;
-      }
-    }
-  }
-  */
-
-  //filter_temp= filter_temp/FILTER_N;
- // return filter_temp;
-//}
-
 //温度转换
 int16 getTemperatureByAnum(uint8 IO_P)
 {
@@ -631,8 +594,9 @@ int16 getTemperatureByAnum(uint8 IO_P)
     }
     return i+80;
   }
+  return 124;
   // 124 -271
-  else if(Anum > 15)
+  /*else if(Anum > 15)
   {
     while(i<=147 && Anum < rtTable3[i] )
     {
@@ -648,7 +612,7 @@ int16 getTemperatureByAnum(uint8 IO_P)
       i++;
     }
     return i+272;
-  }
+  }*/
 }
 
 uint4 getSwitchs()

@@ -21,7 +21,7 @@
 #define NULL_NUM (1000)//开路数字  4.98V
 #define FILTER_N (10) //采样个数
 #define SWITCH_AREA (5)//开关模糊区
-#define AREA (2)//自身模糊区大小
+
 //96 172 237 294 384 455 512 578 630
 
 #define S_0 (96)  //96 172 237 294 384 455 512 578 630    123K
@@ -34,6 +34,13 @@
 #define S_7 (578) 
 #define S_8 (630) 
 
+#define VOL_LOW (443)
+#define VOL_HIGH (717)
+#define VOL_LENGTH (10)
+#define AREA (2)//自身模糊区大小
+
+void init_adc();
+void updata_vol();
 uint16 getVo();
 
 uint4 get_12ADC();
