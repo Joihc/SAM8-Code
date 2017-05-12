@@ -18,13 +18,13 @@
   7->2.7V->552.42
   8->3.0V->613.8
 */
-#define PWM1 (75)
-#define PWM2 (90)
-#define PWM3 (110)
-#define PWM4 (140)
-#define PWM5 (170)
-#define PWM6 (200)
-#define PWM7 (230)
+#define PWM1 (40)
+#define PWM2 (65)
+#define PWM3 (95)
+#define PWM4 (125)
+#define PWM5 (155)
+#define PWM6 (185)
+#define PWM7 (225)
 #define PWM8 (250)
 
 #define PWM_MIN (60) //30KHZ

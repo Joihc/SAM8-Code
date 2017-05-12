@@ -473,7 +473,7 @@ uint4 get_07ADC()
   {
     return 2;
   }
-  else if(StringTemp <=0x0114)
+  else if(StringTemp <=0x4f)
   {
     return 1;
   }

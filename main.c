@@ -22,6 +22,8 @@ __code const uint8 POWER_RATE[] =
 {
 #ifdef P_15KW
 	0, 2 , 4 , 6, 8 , 10 , 12 , 13 , 15
+#elif defined P_12KW
+	0, 2 , 3 , 4 , 6 , 8, 9, 10, 10
 #elif defined P_20KW
 	0, 3 , 5 , 7 , 9 , 11, 14, 17, 20
 #elif defined P_25KW
@@ -30,6 +32,8 @@ __code const uint8 POWER_RATE[] =
 	0, 5 , 8 , 9 , 14, 18, 21, 25, 30
 #elif defined P_35KW
         0, 5 , 6 , 10 , 18, 22, 26, 30, 35
+#elif defined P_50KW
+        0, 6 , 12 , 18 , 24, 30, 36, 42, 50
 #endif
 };
 uint4 firstOpen = TRUE;
@@ -349,7 +353,7 @@ int main()
 			//IGBTÇý¶¯¹ÊÕÏ
 			if ((statusViewNum & ((uint16)1 << 13)) && !haveViewSet && !checkTimeOn)
 			{
-                                if(nulligbtLay<1)
+                                if(nulligbtLay<3)
                                 {
                                   ViewSet(rangeNow);
                                 }
