@@ -96,7 +96,7 @@ void sysInit()
 	TACON = 0x0B;
 	//TACON = 0x00;
 
-	TBCON = 0x77;//0x01   11 0111  /2
+	TBCON = 0x77;//0x01   11 0111  /2  
 	TINTPND = 0x00;
 
 	//WTCON  0100 1010
@@ -939,41 +939,40 @@ void DetectTransformerCut()
 {
 	uint16 temp_2 = (uint16)1 << 15;
 	uint4 temp = getADCNum(12);//0表示线盘断了
-	if (temp && !(statusViewNum & temp_2))
+	if ((temp>=5) && !(PWMChange())  && !(statusViewNum & temp_2))
 	{
 		//正常且正常
 		cTransformerCut = 0;
 		return;
 	}
-	if (temp && (statusViewNum & temp_2))
+	if ((temp>=5) && !(PWMChange())  && (statusViewNum & temp_2))
 	{
 		//正常且不正常
 		delay(2);
-		if (!getADCNum(12))
+		if (getADCNum(12)<5)
 			return;
 		statusViewNum &= ~temp_2;//置0 正常
 		cTransformerCut = 0;
 		return;
 	}
-	if (!temp&& (statusViewNum & temp_2))
+	if (((temp<5) || PWMChange()) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
 		//delay(2);
                 //cTransformerCut = 0;
 		return;
 	}
-	if (!temp && !(statusViewNum & temp_2))
+	if (((temp<5) || PWMChange()) && !(statusViewNum & temp_2))
 	{
 		//不正常且正常
-		delay(2);
-		if (getADCNum(12))
-			return;
 		cTransformerCut++;
-		if (cTransformerCut >= 8)
+		if (cTransformerCut >= 30)
 		{
 			cTransformerCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
 		}
+                statusViewNum &= ~temp_2;//置0 正常
+		nullPot = 0;
 	}
 
 }

@@ -27,7 +27,7 @@
 #define PWM7 (225)
 #define PWM8 (250)
 
-#define PWM_MIN (60) //30KHZ
+#define PWM_MIN (55) //35.7 //60 30KHZ
 #define PWM_POT (65)
 #define PWM_MAX (118) //16.66KHZ  236
 
@@ -40,6 +40,7 @@ void openPWM();
 void closePWM();
 void fixPWM(uint8 index);
 
+uint4 PWMChange();
 void PWMPLUS();
 uint4 getPWMRate();
 void testPotPwm();

@@ -107,8 +107,11 @@ void fixPWM(uint8 index)
     openPWM();
     ei;
 }
-
-
+//如果一直是低频率
+uint4 PWMChange()
+{
+  return pwm == PWM_MIN;
+}
 void PWMPLUS()
 {
   if(P1CONL == 0xFD)//在开启状态
