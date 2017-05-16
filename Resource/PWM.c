@@ -8,7 +8,6 @@ void initPWM()
 {
   pwm=PWM_MIN;
 }
-#pragma inline=forced
 void closePWM()
 {
   AJ_OFF;
@@ -37,10 +36,17 @@ void fixPWM(uint8 index)
       }
     }
     di;
+    if(PWM_OPEN && (!FALUT_OPEN || !Test_Bit(P3, 3)))
+    {
+        pwm = PWM_MIN;
+        closePWM();
+        ei;
+        return;
+    }
     switch(index)
     {
       case 0:
-        pwm = PWM_MIN;//30hz
+        pwm = PWM_MIN;
         closePWM();
         P3INT |= 0x02;//开启中断
         ei;
@@ -76,7 +82,7 @@ void fixPWM(uint8 index)
     //}
     //else
     //{
-    if(!(P3INT & 0x0C))
+    if(!FIX_OPEN)
     {
       pwm -= 2;
       P3INT |= 0x08;//开启中断
@@ -110,7 +116,7 @@ void fixPWM(uint8 index)
 //如果一直是低频率
 uint4 PWMChange()
 {
-  return pwm == PWM_MIN;
+  return pwm <= PWM_MIN+2;
 }
 void PWMPLUS()
 {

@@ -58,6 +58,7 @@ uint4 vHightOut =0;
 //uint4 vCut = 0;   //电压缺相次数
 uint4 cTransformerCut = 0;//线盘状态
 
+uint4 nullpotToLay =0;//无锅次数退出次数
 uint4 nulligbtToLay=0;//igbterror退出延迟次数
 
 uint4 checkTimeOn = FALSE;//无延时检测
@@ -65,8 +66,10 @@ uint8 nullPotCheckTime = 60;//检锅延时
 uint8 igbtErrorCheckTime = 60;//igbt驱动恢复延时
 uint8 temperatureCheckTime = 40;//温度检测延时
 
+
 uint4 checkTransformerCut =0;//线盘时继续线盘
 uint4 checkNullPot =0;//无锅时继续无锅
+
 
 
 uint4 turnOnLay=0;
@@ -156,6 +159,7 @@ void defaultValue()
 	//vCut = 0;   //电压缺相次数
 	cTransformerCut = 0;//线盘状态
 
+        nullpotToLay=0;
         nulligbtToLay=0;//igbterror退出延迟次数
 
 	nullPotCheckTime = 60;//检锅延时
@@ -371,7 +375,7 @@ int main()
                                       nulligbtLay++;
                                     }
 				}
-				if(Test_Bit(P3, 3)&& P33interrptOpen())
+				if(FALUT_OPEN && Test_Bit(P3, 3))
 				{
                                   if(igbtErrorCheckTime == 0)//时间重置且在复位后的状态
                                   {
@@ -415,11 +419,13 @@ int main()
                                 if(checkNullPot<10)
                                 {
                                     fixPWM(rangeNow);
+                                    nullpotToLay = 1;
                                     checkNullPot++;
                                 }
                                 else
                                 {
-                                    fixPWM(0);                                 
+                                    fixPWM(0); 
+                                    nullpotToLay =0;
                                 }
 	                        cTransformerCut = 0;//线盘状态
 			}
@@ -475,11 +481,15 @@ void DetectNullPot()
 	if ((temp != 1) && (statusViewNum & temp_2))
 	{
 		//检测到有锅且显示无锅
-		delay(2);//延时2ms
-		if (get_13ADC() == 1)
-			return;
-		statusViewNum &= ~temp_2;//置0 正常
-		nullPot = 0;
+		if(nullpotToLay>=4)
+                {
+		  statusViewNum &= ~temp_2;//置0 正常
+		  nullPot = 0;
+                }
+                else if(nullpotToLay>=1)
+                {
+                  nullpotToLay++;
+                }
 		return;
 	}
 	if ((temp == 1) && (statusViewNum & temp_2))
@@ -491,11 +501,8 @@ void DetectNullPot()
 	if ((temp == 1) && !(statusViewNum & temp_2))
 	{
 		//检测到无锅且有锅
-		delay(2);//延时2ms
-		if (get_13ADC() != 1)
-			return;
                 nullPot++;
-		if (nullPot >= 10)
+		if (nullPot >=50)
 		{
 			nullPot = 0;
                         nullPotCheckTime =0;
@@ -896,17 +903,14 @@ void DetectIgbtError()
 {
 	uint16 temp_2 = (uint16)1 << 13;
 	uint4 temp = Test_Bit(P3, 3);//0不正常
-	if (temp && P33interrptOpen() && !(statusViewNum & temp_2))
+	if (FALUT_OPEN && temp && !(statusViewNum & temp_2))
 	{
 		//正常且正常
 		return;
 	}
-	if (temp && P33interrptOpen() && (statusViewNum & temp_2))
+	if (FALUT_OPEN && temp && (statusViewNum & temp_2))
 	{
 		//正常且不正常
-		delay(2);
-		if (!Test_Bit(P3, 3))
-			return;	
                 if(nulligbtToLay>=4)
                 {
                     statusViewNum &= ~temp_2;//置0 正常
@@ -917,17 +921,14 @@ void DetectIgbtError()
                 }
 		return;
 	}
-	if ((!temp||!P33interrptOpen()) && (statusViewNum & temp_2))
+	if ((!FALUT_OPEN || !temp)&& (statusViewNum & temp_2))
 	{
 		//不正常且不正常
 		return;
 	}
-	if ((!temp||!P33interrptOpen()) && !(statusViewNum & temp_2))
+	if ((!FALUT_OPEN || !temp)&& !(statusViewNum & temp_2))
 	{
 		//不正常且正常
-		delay(2);
-		if (temp && P33interrptOpen())
-	        return;
                 statusViewNum |= temp_2;//置1 不正常
                 nulligbtLay =0;
                 nulligbtToLay =0;//重置故障恢复时间
@@ -938,14 +939,14 @@ void DetectIgbtError()
 void DetectTransformerCut()
 {
 	uint16 temp_2 = (uint16)1 << 15;
-	uint4 temp = getADCNum(12);//0表示线盘断了
-	if ((temp>=5) && !(PWMChange())  && !(statusViewNum & temp_2))
+	uint16 temp = getADCNum(12);//0表示线盘断了
+	if ((temp>=5)&& !PWMChange()&& !(statusViewNum & temp_2))
 	{
 		//正常且正常
 		cTransformerCut = 0;
 		return;
 	}
-	if ((temp>=5) && !(PWMChange())  && (statusViewNum & temp_2))
+	if ((temp>=5)&& !PWMChange()&& (statusViewNum & temp_2))
 	{
 		//正常且不正常
 		delay(2);
@@ -955,14 +956,14 @@ void DetectTransformerCut()
 		cTransformerCut = 0;
 		return;
 	}
-	if (((temp<5) || PWMChange()) && (statusViewNum & temp_2))
+	if (((temp<5)|| PWMChange()) && (statusViewNum & temp_2))
 	{
 		//不正常且不正常
 		//delay(2);
                 //cTransformerCut = 0;
 		return;
 	}
-	if (((temp<5) || PWMChange()) && !(statusViewNum & temp_2))
+	if (((temp<5)|| PWMChange())&& !(statusViewNum & temp_2))
 	{
 		//不正常且正常
 		cTransformerCut++;
@@ -971,8 +972,6 @@ void DetectTransformerCut()
 			cTransformerCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
 		}
-                statusViewNum &= ~temp_2;//置0 正常
-		nullPot = 0;
 	}
 
 }
@@ -1009,11 +1008,11 @@ void ViewSet(uint8 ShowNum)
 	if (ShowNum<100 && ShowNum>0)//温度模式
 	{
                 tempnum =getTemperatureByAnum(6);
-          	if(tempurature+2<tempnum)
+          	if(tempurature+3<tempnum)
                 {
                   tempurature++;
                 }
-                else if(tempurature-2>tempnum)
+                else if(tempurature-3>tempnum)
                 {
                   tempurature--;
                 }
@@ -1152,21 +1151,17 @@ void TAInterupt()
 void P33Interupt()
 {
    //关闭输出
-  if(P1CONL == 0xFD)//在开启状态
+  if(PWM_OPEN)//在开启状态
   {
     P3INT &= 0xFC;//关闭中断
+    closePWM();//关闭输出
   }
-}
-#pragma inline=forced
-uint4 P33interrptOpen()//1表示开启
-{
-  return (P3INT & 0x02) != 0;
 }
 #pragma inline=forced
 void P34Interupt()
 {
   //相位补偿
-  if(P1CONL == 0xFD)//在开启状态
+  if(PWM_OPEN)//在开启状态
   {
     P3INT &= 0xF3;//关闭中断
   }

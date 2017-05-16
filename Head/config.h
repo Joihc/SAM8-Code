@@ -27,9 +27,9 @@ typedef unsigned long unit32;//32位无符号
 //******************************************************************
 
 
-#define Screen_74HC164 // Screen_74HC164 或者 Screen_TM1629
+#define Screen_TM1629 // Screen_74HC164 或者 Screen_TM1629
 
-#define P_35KW //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
+#define P_15KW //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
 
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 
@@ -52,5 +52,9 @@ typedef unsigned long unit32;//32位无符号
 #define BUZZ_ALL_TIME 4 //蜂鸣器鸣叫时间
 #define FAN_ALL_TIME 60 //60秒风机转动
 #define TURN_ALL_TIME 2 //2S开机时间
+
+#define FALUT_OPEN ((P3INT & 0x03) != 0)//故障中断开启
+#define FIX_OPEN ((P3INT & 0x0C) != 0)//相位补偿中断开启
+#define PWM_OPEN (P1CONL == 0xFD) //是否在运行
 
 #endif /* _CONFIG_H_ */

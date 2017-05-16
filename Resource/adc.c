@@ -465,7 +465,7 @@ uint4 get_11ADC()
   }
   return 0;
 }
-//P0.7/ADC4/线盘温度 10K 5V   0正常 1表示超温 2表示开路   120
+//P0.7/ADC4/线盘温度 10K 5V   0正常 1表示超温 2表示开路   150
 uint4 get_07ADC()
 {
   uint16  StringTemp = getADCNum(7);
@@ -473,7 +473,7 @@ uint4 get_07ADC()
   {
     return 2;
   }
-  else if(StringTemp <=0x4f)
+  else if(StringTemp <=0x92)
   {
     return 1;
   }
