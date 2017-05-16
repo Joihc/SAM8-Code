@@ -58,7 +58,6 @@ uint4 vHightOut =0;
 //uint4 vCut = 0;   //电压缺相次数
 uint4 cTransformerCut = 0;//线盘状态
 
-uint4 nullpotToLay =0;//无锅次数退出次数
 uint4 nulligbtToLay=0;//igbterror退出延迟次数
 
 uint4 checkTimeOn = FALSE;//无延时检测
@@ -70,13 +69,15 @@ uint8 temperatureCheckTime = 40;//温度检测延时
 uint4 checkTransformerCut =0;//线盘时继续线盘
 uint4 checkNullPot =0;//无锅时继续无锅
 
+uint4 errorLay=0;
+
 
 
 uint4 turnOnLay=0;
 uint4 nullPotLay=0;//无锅显示延迟
 uint4 nulligbtLay=0;//igbtError显示延迟
 
-uint8 whiletimes =0;
+//uint4 whiletimes =0;
 
 #ifdef Screen_TM1629
 int16 tempurature =0;
@@ -159,7 +160,6 @@ void defaultValue()
 	//vCut = 0;   //电压缺相次数
 	cTransformerCut = 0;//线盘状态
 
-        nullpotToLay=0;
         nulligbtToLay=0;//igbterror退出延迟次数
 
 	nullPotCheckTime = 60;//检锅延时
@@ -210,19 +210,12 @@ int main()
                 ViewSet(rangeNow);
 #else*/
                 CLEAR_WD;
-                whiletimes++;
-                if(whiletimes>40)
-                {
-                  whiletimes =0;
-                }
                 
                 
 		haveViewSet = FALSE;
 		checkTimeOn = FALSE;
 		SwitchSet();//设置档位
 		
-                if(whiletimes==40)
-                {
                   updata_vol();
 		  DetectCoilHot();//线盘超温
 		  DetectCoilCut();//线盘探头开路
@@ -237,7 +230,6 @@ int main()
 		  DetectSwitchCut();//档位开关开路
 		  DetectUnderPotCut();//锅底探头开路
 		  DetectUnderPotHot();//锅底超温
-                }
                 CLEAR_WD;
 
                 if(P1CONL == 0xFD)//只在开通状态下检查
@@ -419,13 +411,11 @@ int main()
                                 if(checkNullPot<10)
                                 {
                                     fixPWM(rangeNow);
-                                    nullpotToLay = 1;
                                     checkNullPot++;
                                 }
                                 else
                                 {
                                     fixPWM(0); 
-                                    nullpotToLay =0;
                                 }
 	                        cTransformerCut = 0;//线盘状态
 			}
@@ -481,15 +471,11 @@ void DetectNullPot()
 	if ((temp != 1) && (statusViewNum & temp_2))
 	{
 		//检测到有锅且显示无锅
-		if(nullpotToLay>=4)
-                {
-		  statusViewNum &= ~temp_2;//置0 正常
-		  nullPot = 0;
-                }
-                else if(nullpotToLay>=1)
-                {
-                  nullpotToLay++;
-                }
+                delay(2);
+                if(get_13ADC()==1)
+                  return;
+		statusViewNum &= ~temp_2;//置0 正常
+		nullPot = 0;
 		return;
 	}
 	if ((temp == 1) && (statusViewNum & temp_2))
@@ -502,7 +488,7 @@ void DetectNullPot()
 	{
 		//检测到无锅且有锅
                 nullPot++;
-		if (nullPot >=50)
+		if (nullPot >=10)
 		{
 			nullPot = 0;
                         nullPotCheckTime =0;
@@ -552,7 +538,7 @@ void DetectCoilCut()
 		//检查正常且显示正常
 		return;
 	}
-	if ((temp != 2) && (statusViewNum & temp_2))
+	if ((temp != 2) && (statusViewNum & temp_2)&& errorLay>=4)
 	{
 		//检查正常且显示不正常
 		delay(2);//延时2ms
@@ -573,6 +559,7 @@ void DetectCoilCut()
 		if (get_07ADC() != 2)
 			return;
 			statusViewNum |= temp_2;//置1 不正常
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -614,7 +601,7 @@ void DetectIGBTCut_1()
 		//正常且正常
 		return;
 	}
-	if ((temp != 1) && (statusViewNum & temp_2))
+	if ((temp != 1) && (statusViewNum & temp_2)&& errorLay>=4)
 	{
 		//正常且不正常
 		delay(2);
@@ -635,6 +622,7 @@ void DetectIGBTCut_1()
 		if (get_04ADC() != 1)
 			return;
 		statusViewNum |= temp_2;//置1 不正常
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -676,7 +664,7 @@ void DetectIGBTCut_2()
 		//正常且正常
 		return;
 	}
-	if ((temp != 1) && (statusViewNum & temp_2))
+	if ((temp != 1) && (statusViewNum & temp_2)&& errorLay>=4)
 	{
 		//正常且不正常
 		delay(2);
@@ -697,6 +685,7 @@ void DetectIGBTCut_2()
 		if (get_11ADC() != 1)
 			return;
 		statusViewNum |= temp_2;//置1 不正常
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -722,7 +711,7 @@ void DetectVLow()
                 vLowOut =0;
 		return;
 	}
-	if ((temp != 1) && (statusViewNum & temp_2))
+	if ((temp != 1) && (statusViewNum & temp_2)&& errorLay>=4)
 	{
 		//正常且不正常
                 vLowOut++;
@@ -750,6 +739,7 @@ void DetectVLow()
 			statusViewNum |= temp_2;//置1 不正常
 		}
                 vLowOut =0;
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -775,7 +765,7 @@ void DetectVHight()
                 vHightOut =0;
 		return;
 	}
-	if ((temp != 2) && (statusViewNum & temp_2))
+	if ((temp != 2) && (statusViewNum & temp_2)&& errorLay>=4)
 	{
 		//正常且不正常
                 vHightOut++;
@@ -803,6 +793,7 @@ void DetectVHight()
 			statusViewNum |= temp_2;//置1 不正常
 		}
                 vHightOut =0;
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -815,7 +806,7 @@ void DetectSwitchCut()
 		//正常且正常
 		return;
 	}
-	if ((temp != 1) && (statusViewNum & temp_2))
+	if ((temp != 1) && (statusViewNum & temp_2)&& errorLay>=4)
 	{
 		//正常且不正常
 		delay(2);
@@ -836,6 +827,7 @@ void DetectSwitchCut()
 		if (get_05ADC() != 1)
 			return;
 		statusViewNum |= temp_2;//置1 不正常
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -848,7 +840,7 @@ void DetectUnderPotCut()
 		//正常且正常
 		return;
 	}
-	if ((temp != 2) && (statusViewNum & temp_2))
+	if ((temp != 2) && (statusViewNum & temp_2) && errorLay>=4)
 	{
 		//正常且不正常
 		delay(2);
@@ -867,7 +859,8 @@ void DetectUnderPotCut()
 		delay(2);
 		if (get_06ADC() != 2)
 			return;
-			statusViewNum |= temp_2;//置1 不正常
+		statusViewNum |= temp_2;//置1 不正常
+                errorLay = 0;
 	}
 }
 #pragma inline=forced
@@ -949,10 +942,10 @@ void DetectTransformerCut()
 	if ((temp>=5)&& !PWMChange()&& (statusViewNum & temp_2))
 	{
 		//正常且不正常
-		delay(2);
-		if (getADCNum(12)<5)
-			return;
-		statusViewNum &= ~temp_2;//置0 正常
+		//delay(2);
+		//if (getADCNum(12)<5)
+		//	return;
+		//statusViewNum &= ~temp_2;//置0 正常
 		cTransformerCut = 0;
 		return;
 	}
@@ -960,7 +953,7 @@ void DetectTransformerCut()
 	{
 		//不正常且不正常
 		//delay(2);
-                //cTransformerCut = 0;
+                cTransformerCut = 0;
 		return;
 	}
 	if (((temp<5)|| PWMChange())&& !(statusViewNum & temp_2))
@@ -972,6 +965,7 @@ void DetectTransformerCut()
 			cTransformerCut = 0;
 			statusViewNum |= temp_2;//置1 不正常
 		}
+                nullPot = 0;
 	}
 
 }
@@ -1128,6 +1122,10 @@ void TAInterupt()
 		if (count_1s == 17)
 		{
 			count_1s = 0;
+                        if(errorLay<6)
+                        {
+                          errorLay++;
+                        }
                         if(turnOnLay<TURN_ALL_TIME)
                         {
                           turnOnLay++;

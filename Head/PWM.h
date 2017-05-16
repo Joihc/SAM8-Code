@@ -41,7 +41,6 @@ void closePWM();
 void fixPWM(uint8 index);
 
 uint4 PWMChange();
-void PWMPLUS();
 uint4 getPWMRate();
 void testPotPwm();
 void testPWM(uint8 index);

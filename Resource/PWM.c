@@ -118,14 +118,6 @@ uint4 PWMChange()
 {
   return pwm <= PWM_MIN+2;
 }
-void PWMPLUS()
-{
-  if(P1CONL == 0xFD)//在开启状态
-  {
-    //pwmMinus =1;
-    P3INT &= 0xF3;//关闭中断
-  }
-}
 void testPotPwm()
 {
     di;

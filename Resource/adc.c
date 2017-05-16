@@ -126,6 +126,7 @@ __code const uint16   rtTable1[] =
     0x023d,	// 79.00		12.7600
     0x0235,	// 80.00		12.3500
  };
+
 __code const uint16   rtTable2[] =
 {
     0x022c,	// 81.00		11.9500
@@ -148,6 +149,7 @@ __code const uint16   rtTable2[] =
     0x01a3,	// 98.00		6.9590
     0x019c,	// 99.00		6.7510
     0x0194,	// 100.00		6.5500
+};/*
     0x018d,	// 101.00		6.3570
     0x0186,	// 102.00		6.1700
     0x017f,	// 103.00		5.9890
@@ -171,7 +173,7 @@ __code const uint16   rtTable2[] =
     0x010e,	// 121.00		3.6020
     0x0109,	// 122.00		3.5060
     0x0104,	// 123.00		3.4130
-};
+//};*/
 /*    //--------130/5 =[0]-[26]
 __code const uint8  rtTable3[] =
 {
@@ -579,22 +581,22 @@ int16 getTemperatureByAnum(uint8 IO_P)
   //-40 -80
   if(Anum > 556)
   {
-    while(i <=120 && Anum < rtTable1[i])
+    while(i <120 && Anum < rtTable1[i])
     {
       i++;
     }
-    return i-40;
+    return i-39;
   }
-  // 80 - 123
-  else if(Anum > 255)
+   //80 - 100
+  else if(Anum > 397)
   {
-    while(i<=43 && Anum < rtTable2[i])
+    while(i<20 && Anum < rtTable2[i])
     {
       i++;
     }
-    return i+80;
+    return i+79;
   }
-  return 124;
+  return 100;
   // 124 -271
   /*else if(Anum > 15)
   {
