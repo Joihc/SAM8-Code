@@ -100,7 +100,8 @@ void sysInit()
 	TACON = 0x0B;
 	//TACON = 0x00;
 
-	TBCON = 0x77;//0x01   11 0111  /2  
+        TBCON = 0x73;//0x01   11 0111  /2  关闭STOP TIMER B
+	//TBCON = 0x77;//0x01   11 0111  /2  
 	TINTPND = 0x00;
 
 	//WTCON  0100 1010
@@ -119,7 +120,7 @@ void ioInit()
 	P0PUR = 0x07;//0 0 0 0 0   0 1 1 1
 				 /* P1 I/O口 */
 	P1CONH = 0x0A;//00(P1.7) 00(P1.6) 10(P1.5/蜂鸣器) 10(P1.4/A316J低电平复位信号)
-	P1CONL = 0xFC;//11(P1.3/ADC0) 11(P1.2/ADC1) 11(P1.1/ADC2) 00(关闭)/01(P1.0/PWM)
+	P1CONL = 0xFD;//11(P1.3/ADC0) 11(P1.2/ADC1) 11(P1.1/ADC2) 00(关闭)/01(P1.0/PWM)
 	P1PUR = 0xF1;//1 1 1 1  0 0 0 1
 				 /*  P2 I/0口*/
 	P2CONH = 0x2A;//00(P2.7) 10(P2.6/LED) 10(P2.5/164 DAT) 10(P2.4/164 CLK)
@@ -199,7 +200,7 @@ int main()
 
 	while (1)
 	{
-/*#ifdef DEBUG
+#ifdef DEBUG
 		CLEAR_WD;
 		//SwitchSet();
 		//ViewSet(rangeNow);
@@ -207,8 +208,9 @@ int main()
                 //Set_Bit(P1,0);
                 //AJ_ON;
                 SwitchSet();
+                fixPWM(rangeNow);
                 ViewSet(rangeNow);
-#else*/
+#else
                 CLEAR_WD;
                 
                 
@@ -232,7 +234,7 @@ int main()
 		  DetectUnderPotHot();//锅底超温
                 CLEAR_WD;
 
-                if(P1CONL == 0xFD)//只在开通状态下检查
+                if(PWM_OPEN)//只在开通状态下检查TBCON == 0x77
                 {                                         
                   DetectTransformerCut();//线盘断了或者输出互感器坏了
 		  DetectIgbtError();//IGBT驱动故障
@@ -454,7 +456,7 @@ int main()
 				}
 			}
 		}
-//#endif
+#endif
 	}
 }
 #pragma inline=forced
@@ -1137,7 +1139,7 @@ void TAInterupt()
 #elif defined Screen_TM1629
 			interuptUpdate_TM1629();
 #endif
-                    if(P1CONL == 0xFD && temperatureCheckTime)//只在开通状态检查温度运转
+                    if(PWM_OPEN && temperatureCheckTime)//只在开通状态检查温度运转
                     {
                       temperatureCheckTime--;//开路延时倒计时
                     }

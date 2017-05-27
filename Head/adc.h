@@ -35,7 +35,7 @@
 #define S_8 (630) 
 
 #define VOL_LOW (443)
-#define VOL_HIGH (717)
+#define VOL_HIGH (743)//717
 #define VOL_LENGTH (10)
 #define AREA (2)//自身模糊区大小
 
