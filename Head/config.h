@@ -29,7 +29,7 @@ typedef unsigned long unit32;//32位无符号
 
 #define Screen_TM1629 // Screen_74HC164 或者 Screen_TM1629
 
-#define P_50KW //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
+#define P_12KW //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
 
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 

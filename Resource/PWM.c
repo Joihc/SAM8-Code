@@ -2,7 +2,7 @@
 
 #include "PWM.h"
 
-uint8 pwm =PWM_MIN;//
+volatile uint8 pwm =PWM_MIN;//
 
 void initPWM()
 {
@@ -15,6 +15,7 @@ void closePWM()
   {
     TBCON = 0x73;//¹Ø±ÕTIMER B
   }
+  pwm = PWM_MIN;
   //P1CONL = 0xFC;
 }
 #pragma inline=forced
@@ -46,7 +47,6 @@ void fixPWM(uint8 index)
     di;
     if(PWM_OPEN && (!FALUT_OPEN || !Test_Bit(P3, 3)))
     {
-        pwm = PWM_MIN;
         closePWM();
         ei;
         return;
@@ -54,7 +54,6 @@ void fixPWM(uint8 index)
     switch(index)
     {
       case 0:
-        pwm = PWM_MIN;
         closePWM();
         P3INT |= 0x02;//¿ªÆôÖÐ¶Ï
         ei;
