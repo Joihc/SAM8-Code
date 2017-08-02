@@ -21,11 +21,12 @@ void closePWM()
 #pragma inline=forced
 void openPWM()
 {
-  AJ_ON;
+  
   if(TBCON != 0x77)
   {
     TBCON = 0x77;//¿ªÆôTIMER B
   }
+  AJ_ON;
   //P1CONL = 0xFD;
 }
 
