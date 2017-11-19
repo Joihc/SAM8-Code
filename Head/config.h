@@ -33,7 +33,7 @@ typedef int bool;
 
 #define Screen_TM1629_2 // Screen_74HC164 或者 Screen_TM1629 或者 Screen_TM1629_2
 
-#define RANGE_NUM 30 //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
+#define RANGE_NUM 50 //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
 
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 
