@@ -22,12 +22,12 @@
 @REM but they are listed at the end of this file for reference.
 
 
-"D:\pf\iar3.2\common\bin\cspybat" "D:\pf\iar3.2\SAM8\bin\sam8proc.dll" "D:\pf\iar3.2\SAM8\bin\sam8sim.dll"  %1 --plugin "D:\pf\iar3.2\SAM8\bin\<libsupport_plugin>" --backend -B "-ef" "FF" "--core" "sam8xrcri" "-p" "D:\pf\iar3.2\SAM8\config\iosam8xrcri.ddf" "-d" "sim" 
+"D:\pro\sam8\common\bin\cspybat" "D:\pro\sam8\SAM8\bin\sam8proc.dll" "D:\pro\sam8\SAM8\bin\sam8sim.dll"  %1 --plugin "D:\pro\sam8\SAM8\bin\<libsupport_plugin>" --backend -B "-ef" "FF" "--core" "sam8xrcri" "-p" "D:\pro\sam8\SAM8\config\iosam8xrcri.ddf" "-d" "sim" 
 
 
 @REM Loaded plugins:
 @REM    sam8LibSupport.dll
-@REM    D:\pf\iar3.2\common\plugins\CodeCoverage\CodeCoverage.dll
-@REM    D:\pf\iar3.2\common\plugins\Profiling\Profiling.dll
-@REM    D:\pf\iar3.2\common\plugins\stack\stack.dll
-@REM    D:\pf\iar3.2\common\plugins\SymList\SymList.dll
+@REM    D:\pro\sam8\common\plugins\CodeCoverage\CodeCoverage.dll
+@REM    D:\pro\sam8\common\plugins\Profiling\Profiling.dll
+@REM    D:\pro\sam8\common\plugins\stack\stack.dll
+@REM    D:\pro\sam8\common\plugins\SymList\SymList.dll

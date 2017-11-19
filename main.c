@@ -15,6 +15,8 @@
 #include "74HC164.h"
 #elif defined  Screen_TM1629
 #include "TM1629.h"
+#elif defined Screen_TM1629_2
+#include "TM1629_2.h"
 #endif
 //003EH -> 1 01011 11   003FH ->1111 1 110   D3
 __root const volatile uint8 Smart_Code[]@0x003C={0xFF, 0x05, 0xD3, 0xFE};
@@ -72,10 +74,7 @@ uint4 nullPotLay=0;//无锅显示延迟
 uint4 nulligbtLay=0;//igbtError显示延迟
 
 //uint4 whiletimes =0;
-
-#ifdef Screen_TM1629
 int16 tempurature =0;
-#endif
 
 #pragma inline=forced
 								   //--initiation
@@ -108,8 +107,9 @@ void sysInit()
 void ioInit()
 {
 	/* PO I/O口 不用IO口均设置为输入上拉 默认*/
-        P0CONH = 0x45;//01(ADC4) 00(温控) 01(ADC6) 01(ADC7)
-	
+        //P0CONH = 0x45;//01(ADC4) 00(温控) 01(ADC6) 01(ADC7)
+	P0CONH = 0x55;//01(ADC4) 01（ADC5)/00(温控) 01(ADC6) 01(ADC7)
+  
 	P0CONL = 0xC3;//11(ADC8) 00(P0.2/reset) 00(P0.1/XTOUT) 11(P0.0/FAN)
 	P0PUR = 0x07;//0 0 0 0 0   0 1 1 1
 				 /* P1 I/O口 */
@@ -122,6 +122,8 @@ void ioInit()
 	P2CONL = 0xAA;//10(P2.3/COM1) 10(P2.2/COM2) 10出 00入(P2.1/IIC-SDA) 10(P2.0/IIC-SCL)
 #elif defined Screen_TM1629
 	P2CONL = 0x8A;//10(P2.3/COM1) 00(P2.2/COM2) 10(P2.1/IIC-SDA) 10(P2.0/IIC-SCL)
+#elif defined Screen_TM1629_2
+        P2CONL = 0x8A;//10(P2.3/COM1) 00(P2.2/COM2) 10(P2.1/IIC-SDA) 10(P2.0/IIC-SCL)
 #endif
 
 				  /*  P3 I/0口*/
@@ -176,6 +178,8 @@ int main()
 	init_74HC164();
 #elif defined Screen_TM1629
 	init_TM1629();
+#elif defined Screen_TM1629_2
+        sc2_init();
 #endif
 
 	defaultValue();
@@ -187,9 +191,7 @@ int main()
         while(turnOnLay<TURN_ALL_TIME);
         
         rangeNow = getSwitchByAnum();   
-#ifdef Screen_TM1629
         tempurature = getTemperatureByAnum(7);
-#endif
 
 
 	while (1)
@@ -224,8 +226,8 @@ int main()
 		  DetectVHight();//高压检测
 		  //DetectVCut();//缺相检测
 		  DetectSwitchCut();//档位开关开路
-		  //DetectUnderPotCut();//锅底探头开路
-		  //DetectUnderPotHot();//锅底超温
+		  DetectUnderPotCut();//锅底探头开路
+		  DetectUnderPotHot();//锅底超温
                 CLEAR_WD;
 
                 if(PWM_OPEN)//只在开通状态下检查TBCON == 0x77
@@ -431,6 +433,7 @@ int main()
 				}
 				else
 				{
+                                  /* 温控器
                                         if(Test_Bit(P0,6))
                                         {
                                           fixPWM(0);
@@ -441,7 +444,8 @@ int main()
                                         {
 					  fixPWM(rangeNow);//开启输出
                                         }
-                                        
+                                  */
+                                        fixPWM(rangeNow);//开启输出
 					ViewSet(rangeNow);//显示档位
 					fanTime = 0;//开启风机   
 				}
@@ -1028,6 +1032,29 @@ void ViewSet(uint8 ShowNum)
 	}
 	whileUpdate_TM1629();
 }
+#elif defined Screen_TM1629_2
+void ViewSet(uint8 ShowNum)
+{
+  int16 tempnum =0;
+  tempnum =getTemperatureByAnum(7);
+  if(tempurature+3<tempnum)
+  {
+    tempurature++;
+  }
+  else if(tempurature-3>tempnum)
+  {
+    tempurature--;
+  }
+  if (ShowNum<100 && ShowNum>0)//温度模式
+  {
+    sc2_set_TM1629_Up(rangeNow,getPWMRate(),POWER_RATE[ShowNum],tempurature);
+  }
+  else
+  {
+    sc2_set_TM1629_Up(rangeNow,getPWMRate(),ShowNum,tempurature);
+  }
+  sc2_whileUpdate();
+}
 #endif
 //中断
 #pragma vector=0x00
@@ -1105,7 +1132,9 @@ void TAInterupt()
 		count_60ms = 0;
 		count_2s++;
 		count_1s++;
-
+#if defined Screen_TM1629_2
+                sc2_quicklyUpdate();
+#endif
 		if (count_2s == 34)//2s
 		{
 			count_2s = 0;
@@ -1142,6 +1171,8 @@ void TAInterupt()
 			interuptUpdate_74HC164();
 #elif defined Screen_TM1629
 			interuptUpdate_TM1629();
+#elif defined Screen_TM1629_2
+                        sc2_interuptUpdate();
 #endif
                     if(PWM_OPEN && temperatureCheckTime)//只在开通状态检查温度运转
                     {

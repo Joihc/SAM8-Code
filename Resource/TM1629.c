@@ -539,7 +539,6 @@ void set_TM1629_Down(int16 num,uint4 trim)//-999 - 9999
     }
 
 }
-#pragma inline = forced
 //pos = 2中3 4下左5 6下右7 0-9 10表示负号  11表示灭
 void set_TM1629_SignNum(uint4 pos,uint4 marks)
 {
@@ -563,7 +562,6 @@ void set_TM1629_SignNum(uint4 pos,uint4 marks)
   }
 
 }
-#pragma inline = forced
 void set_TM1629_UpNum()
 {
   if(upNumState == OFF)
@@ -592,7 +590,6 @@ void set_TM1629_UpNum()
       }
     }
 }
-#pragma inline = forced
 void set_TM1629_TimeMark()
 {
   if(timeMarkState == ON) {
@@ -614,7 +611,6 @@ void set_TM1629_TimeMark()
     }
   }
 }
-#pragma inline = forced
 void set_TM1629_TempMark()
 {
   if(tempMarkState == ON) {
@@ -682,7 +678,6 @@ void set_TM1629_Waterg()
   //display2(0xC9,buffCode_TM1629[9]);
 
 }
-#pragma inline = forced
 //传感   0 无   1有
 void set_TM1629_Fell()
 {
@@ -705,7 +700,6 @@ void set_TM1629_Fell()
     }
   }
 }
-#pragma inline = forced
 //超温
 void set_TM1629_Temp()
 {
@@ -727,7 +721,6 @@ void set_TM1629_Temp()
     }
   }
 }
-#pragma inline = forced
 //锅
 void set_TM1629_Pot()
 {
@@ -754,7 +747,6 @@ void set_TM1629_Pot()
       }
   }
 }
-#pragma inline = forced
 //加热
 void  set_TM1629_Hot()
 {
@@ -777,7 +769,6 @@ void  set_TM1629_Hot()
     }
   }
 }
-#pragma inline = forced
 //保护
 void set_TM1629_Pro()
 {
@@ -800,7 +791,6 @@ void set_TM1629_Pro()
     }
   }
 }
-#pragma inline = forced
 void set_TM1629_Phone()
 {
   if(phoneState == ON)
@@ -817,7 +807,6 @@ void set_TM1629_Phone()
       buffCode_TM1629[1]&=~(1<<((stateTime%5) +1));
   }
 }
-#pragma inline = forced
 //1闪
 void set_TM1629_Vlotage()
 {
@@ -840,7 +829,6 @@ void set_TM1629_Vlotage()
     }
   }
 }
-#pragma inline = forced
 //KW
 void set_TM1629_Kw()
 {
@@ -862,7 +850,6 @@ void set_TM1629_Kw()
     }
   }
 }
-#pragma inline = forced
 //冒号 0 1亮
 void set_TM1629_Colon()
 {
@@ -885,7 +872,6 @@ void set_TM1629_Colon()
     }
   }
 }
-#pragma inline = forced
 void indate(unsigned char p)
 {
 	unsigned int i;
@@ -906,7 +892,6 @@ void indate(unsigned char p)
 		p=p>>1;//准备送下一个BIT
 	}//送完一个字节后退出循环
 }
-#pragma inline = forced
 //采用地址自动加1方式
 void display(short state)
 {

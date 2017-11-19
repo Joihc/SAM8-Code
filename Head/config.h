@@ -15,8 +15,12 @@ typedef signed int int16;//16位有符号整型
 typedef signed long int32;//32位有符号整型
 typedef unsigned short uint4;
 typedef unsigned char uint8;//8位无符号
-typedef unsigned int uint16;//16位无符号
-typedef unsigned long unit32;//32位无符号
+typedef unsigned int uint16;//16位无符号 1-35535
+typedef unsigned long uint32;//32位无符号 1- 
+
+typedef int bool;
+#define true 1
+#define false 0
 //******************************************************************
 
 //*****************************位域*********************************
@@ -27,9 +31,9 @@ typedef unsigned long unit32;//32位无符号
 //******************************************************************
 
 
-#define Screen_TM1629 // Screen_74HC164 或者 Screen_TM1629
+#define Screen_TM1629_2 // Screen_74HC164 或者 Screen_TM1629 或者 Screen_TM1629_2
 
-#define RANGE_NUM 50 //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
+#define RANGE_NUM 30 //P_12KW P_15KW P_20KW P_25KW P_30KW P_35KW P_50KW
 
 //#define DEBUG //debug模式下不检查，只正常运行 DEBUG
 
@@ -41,6 +45,7 @@ typedef unsigned long unit32;//32位无符号
 
 #define FAN_ON  (Set_Bit(P0,0))
 #define FAN_OFF (Clr_Bit(P0,0))
+#define FAN_TEST (Test_Bit(P0,0))
 
 #define AJ_ON  (Set_Bit(P1,4))
 #define AJ_OFF  (Clr_Bit(P1,4))

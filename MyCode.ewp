@@ -982,7 +982,7 @@
         </option>
         <option>
           <name>CCIncludePath2</name>
-          <state>F:\GitHub\SAM8-Code\Head</state>
+          <state>D:\Works\GitHub\SAM8-Code\Head</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1257,7 +1257,7 @@
         </option>
         <option>
           <name>XList</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>SegmentMap</name>
@@ -1419,7 +1419,7 @@
         </option>
         <option>
           <name>ListOutputFormat</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>BufferedTermOutput</name>
@@ -1527,6 +1527,9 @@
     <file>
       <name>$PROJ_DIR$\Head\TM1629.h</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\Head\TM1629_2.h</name>
+    </file>
   </group>
   <group>
     <name>Resource</name>
@@ -1550,6 +1553,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\Resource\TM1629.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\Resource\TM1629_2.c</name>
     </file>
   </group>
   <file>
