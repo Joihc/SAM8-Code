@@ -1023,7 +1023,7 @@ void ViewSet(uint8 ShowNum)
 		// tempreture =getTemperatureByAnum(6);//锅底温度
 		//getADCNum(13) 输入互感器电流 AD
 		//getADCNum(12) 输出互感器电流大小
-		set_TM1629_Down(getADCNum(13), 1);            
+		set_TM1629_Down(tempurature, 1);            
 	}
 	else//时间模式
 	{

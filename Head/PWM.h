@@ -18,8 +18,8 @@
   7->2.7V->552.42
   8->3.0V->613.8
 */
-#define PWM1 (40)
-#define PWM2 (65)
+#define PWM1 (55)
+#define PWM2 (75)
 #define PWM3 (95)
 #define PWM4 (125)
 #define PWM5 (155)
