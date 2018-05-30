@@ -107,8 +107,8 @@ void sysInit()
 void ioInit()
 {
 	/* PO I/O口 不用IO口均设置为输入上拉 默认*/
-        //P0CONH = 0x45;//01(ADC4) 00(温控) 01(ADC6) 01(ADC7)
-	P0CONH = 0x55;//01(ADC4) 01（ADC5)/00(温控) 01(ADC6) 01(ADC7)
+        P0CONH = 0x45;//01(ADC4) 00(温控) 01(ADC6) 01(ADC7)
+	//P0CONH = 0x55;//01(ADC4) 01（ADC5)/00(温控) 01(ADC6) 01(ADC7)
   
 	P0CONL = 0xC3;//11(ADC8) 00(P0.2/reset) 00(P0.1/XTOUT) 11(P0.0/FAN)
 	P0PUR = 0x07;//0 0 0 0 0   0 1 1 1
@@ -226,8 +226,8 @@ int main()
 		  DetectVHight();//高压检测
 		  //DetectVCut();//缺相检测
 		  DetectSwitchCut();//档位开关开路
-		  DetectUnderPotCut();//锅底探头开路
-		  DetectUnderPotHot();//锅底超温
+		  //DetectUnderPotCut();//锅底探头开路
+		  //DetectUnderPotHot();//锅底超温
                 CLEAR_WD;
 
                 if(PWM_OPEN)//只在开通状态下检查TBCON == 0x77
@@ -433,7 +433,7 @@ int main()
 				}
 				else
 				{
-                                  /* 温控器
+                                  // 温控器
                                         if(Test_Bit(P0,6))
                                         {
                                           fixPWM(0);
@@ -444,8 +444,8 @@ int main()
                                         {
 					  fixPWM(rangeNow);//开启输出
                                         }
-                                  */
-                                        fixPWM(rangeNow);//开启输出
+                                  //*/
+                                  //      fixPWM(rangeNow);//开启输出
 					ViewSet(rangeNow);//显示档位
 					fanTime = 0;//开启风机   
 				}
